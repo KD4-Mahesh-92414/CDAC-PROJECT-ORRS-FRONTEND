@@ -1,0 +1,439 @@
+================================================================================
+    ORRS MICROSERVICES - API ENDPOINTS DISTRIBUTION
+    Service Responsibility & Endpoint Mapping
+================================================================================
+
+================================================================================
+USER SERVICE (Port 8081)
+================================================================================
+
+RESPONSIBILITY: User account management, authentication, profile operations
+DATABASE TABLES: users
+
+---
+
+✅ MUST IMPLEMENT (Core Endpoints)
+-----------------------------------
+
+1. POST /api/users/register
+   - Register new user account
+   - Input: { fullName, email, password, mobile, gender, dob, address, idType, idNumber }
+   - Output: { userId, fullName, email, role, createdOn }
+   - No authentication required
+
+2. POST /api/users/login
+   - User authentication
+   - Input: { email, password }
+   - Output: { token (JWT), userId, fullName, email, role }
+   - Returns JWT token for subsequent requests
+
+3. GET /api/users/{id}
+   - Get user profile details
+   - Output: { userId, fullName, email, mobile, gender, dob, address, role, preferredClass }
+   - Requires authentication
+   - User can only view their own profile (or admin can view any)
+
+4. PUT /api/users/{id}
+   - Update user profile
+   - Input: { fullName, mobile, address, preferredClass }
+   - Output: Updated user object
+   - Requires authentication
+   - Cannot update email, password, role through this endpoint
+
+5. PUT /api/users/{id}/password
+   - Change user password
+   - Input: { oldPassword, newPassword }
+   - Output: { success: true, message: "Password updated" }
+   - Requires authentication
+   - Validates old password before updating
+
+6. GET /api/users/verify-token
+   - Verify JWT token validity (used by other services)
+   - Input: JWT token in Authorization header
+   - Output: { valid: true, userId, role }
+   - Used by API Gateway and other services
+
+---
+
+⚠️ OPTIONAL (Can Add Later)
+----------------------------
+
+7. DELETE /api/users/{id}
+   - Soft delete user account
+   - Sets is_deleted = 1
+   - Requires authentication + admin role
+
+8. GET /api/users (Admin only)
+   - List all users
+   - Pagination support
+   - Admin feature
+
+---
+
+❌ NOT IN USER SERVICE (Belongs to Other Services)
+---------------------------------------------------
+
+✗ Booking History → BOOKING SERVICE
+✗ View Booking Details → BOOKING SERVICE
+✗ Cancel Booking → BOOKING SERVICE
+✗ Payment History → BOOKING SERVICE
+✗ Download Ticket → BOOKING SERVICE
+✗ Passenger Master List → BOOKING SERVICE (Admin feature)
+✗ Add Card Details → PAYMENT SERVICE (Optional)
+✗ Download Invoices → BOOKING SERVICE (Optional)
+
+================================================================================
+TRAIN SERVICE (Port 8082)
+================================================================================
+
+RESPONSIBILITY: Train search, station management, seat availability
+DATABASE TABLES: trains, stations, train_stations, train_coach, seat, train_fare
+
+---
+
+✅ MUST IMPLEMENT
+-----------------
+
+1. GET /api/trains/search
+   - Search trains by route and date
+   - Input: ?from=stationName&to=stationName&date=YYYY-MM-DD
+   - Output: List of available trains with coaches and fares
+
+2. GET /api/trains/{id}
+   - Get train details
+   - Output: Train info with route, timings, coaches
+
+3. GET /api/trains/{id}/route
+   - Get complete train route with all stops
+   - Output: List of stations with arrival/departure times
+
+4. GET /api/trains/{id}/coaches
+   - Get all coaches for a train
+   - Output: List of coaches with seat availability
+
+5. GET /api/trains/{id}/seats
+   - Get seat layout and availability
+   - Input: ?coachId=123
+   - Output: Seat map with booked/available status
+
+6. GET /api/stations
+   - Get all active stations
+   - Output: List of stations with codes and names
+
+7. GET /api/stations/search
+   - Search stations by name or code
+   - Input: ?query=searchTerm
+   - Output: Matching stations
+
+---
+
+⚠️ ADMIN ENDPOINTS (Optional)
+------------------------------
+
+8. POST /api/trains (Admin)
+   - Add new train
+
+9. PUT /api/trains/{id} (Admin)
+   - Update train details
+
+10. POST /api/stations (Admin)
+    - Add new station
+
+================================================================================
+BOOKING SERVICE (Port 8083)
+================================================================================
+
+RESPONSIBILITY: Booking management, payments, tickets, passengers
+DATABASE TABLES: booking, passenger, ticket, payment, payment_*, refund_logs
+
+---
+
+✅ MUST IMPLEMENT
+-----------------
+
+BOOKING ENDPOINTS:
+------------------
+
+1. POST /api/bookings
+   - Create new booking
+   - Input: { userId, trainId, sourceStationId, destinationStationId, journeyDate, 
+             passengers: [{ name, age, gender, seatId }] }
+   - Output: { bookingId, pnrNumber, totalFare, status }
+   - Calls Train Service to lock seats
+
+2. GET /api/bookings/{id}
+   - Get booking details
+   - Output: Complete booking info with passengers, train, stations
+
+3. GET /api/bookings/pnr/{pnr}
+   - Get booking by PNR number
+   - Output: Booking details
+
+4. GET /api/bookings/user/{userId}
+   - Get all bookings for a user (Booking History)
+   - Output: List of bookings with basic info
+   - Pagination support
+
+5. PUT /api/bookings/{id}/cancel
+   - Cancel booking
+   - Updates booking status
+   - Calls Train Service to unlock seats
+   - Initiates refund process
+
+PASSENGER ENDPOINTS:
+--------------------
+
+6. GET /api/passengers/{bookingId}
+   - Get all passengers for a booking
+   - Output: List of passengers with seat details
+
+7. GET /api/passengers/master-list (Admin)
+   - Get all passengers across all bookings
+   - Filters: date range, train, status
+   - Admin feature for reports
+
+PAYMENT ENDPOINTS:
+------------------
+
+8. POST /api/payments
+   - Process payment for booking
+   - Input: { bookingId, amount, paymentMode, cardDetails/upiDetails }
+   - Output: { paymentId, status, transactionId }
+   - Updates booking status to Confirmed
+
+9. GET /api/payments/user/{userId}
+   - Get payment history for user
+   - Output: List of payments with booking info
+
+10. GET /api/payments/{id}
+    - Get payment details
+    - Output: Payment info with mode-specific details
+
+TICKET ENDPOINTS:
+-----------------
+
+11. GET /api/tickets/{bookingId}
+    - Get ticket details
+    - Output: Ticket info for display
+
+12. GET /api/tickets/{bookingId}/download
+    - Download ticket as PDF
+    - Output: PDF file
+    - Generates ticket with QR code, passenger details
+
+---
+
+⚠️ OPTIONAL (Future Enhancement)
+---------------------------------
+
+13. POST /api/refunds
+    - Initiate refund request
+
+14. GET /api/refunds/{bookingId}
+    - Get refund status
+
+15. GET /api/invoices/user/{userId}
+    - Download all invoices
+
+16. GET /api/invoices/{bookingId}
+    - Download specific invoice
+
+================================================================================
+API GATEWAY (Port 8080)
+================================================================================
+
+RESPONSIBILITY: Single entry point, routing, authentication, rate limiting
+
+ROUTE CONFIGURATION:
+--------------------
+
+/api/users/**       → User Service (8081)
+/api/trains/**      → Train Service (8082)
+/api/stations/**    → Train Service (8082)
+/api/bookings/**    → Booking Service (8083)
+/api/passengers/**  → Booking Service (8083)
+/api/payments/**    → Booking Service (8083)
+/api/tickets/**     → Booking Service (8083)
+
+FEATURES:
+---------
+- JWT token validation
+- CORS configuration
+- Circuit breaker
+- Request logging
+- Rate limiting
+
+================================================================================
+SERVICE COMMUNICATION FLOW
+================================================================================
+
+BOOKING FLOW:
+-------------
+1. User searches trains
+   Frontend → Gateway → Train Service
+
+2. User selects seats
+   Frontend → Gateway → Train Service (check availability)
+
+3. User creates booking
+   Frontend → Gateway → Booking Service
+   Booking Service → Train Service (lock seats)
+   Booking Service → User Service (verify user)
+
+4. User makes payment
+   Frontend → Gateway → Booking Service
+   Booking Service → Payment Gateway (external)
+
+5. Ticket generated
+   Booking Service generates ticket
+   Frontend → Gateway → Booking Service (download ticket)
+
+AUTHENTICATION FLOW:
+--------------------
+1. User logs in
+   Frontend → Gateway → User Service (returns JWT)
+
+2. Subsequent requests
+   Frontend → Gateway (validates JWT) → Respective Service
+
+3. Service-to-service calls
+   Service A → User Service (verify token)
+
+================================================================================
+ENDPOINT SUMMARY
+================================================================================
+
+USER SERVICE:        5-7 endpoints
+TRAIN SERVICE:       7-10 endpoints
+BOOKING SERVICE:     12-16 endpoints
+API GATEWAY:         Route configuration only
+
+TOTAL ENDPOINTS:     24-33 endpoints
+
+================================================================================
+IMPLEMENTATION PRIORITY
+================================================================================
+
+PHASE 1 (Week 1-2): Core Booking Flow
+--------------------------------------
+✅ User: Register, Login, Profile
+✅ Train: Search, Details, Seats
+✅ Booking: Create, View, Payment
+✅ Ticket: Generate, Download
+
+PHASE 2 (Week 3): User Features
+--------------------------------
+✅ Booking: History, Cancel
+✅ Payment: History
+✅ User: Update Profile, Change Password
+
+PHASE 3 (Week 4): Admin Features
+---------------------------------
+✅ Passenger: Master List
+✅ Train: Management (CRUD)
+✅ Station: Management (CRUD)
+✅ Reports & Analytics
+
+PHASE 4 (Optional): Advanced Features
+--------------------------------------
+⚠️ Refunds
+⚠️ Invoices
+⚠️ Notifications
+⚠️ Card Management
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+USER SERVICE:
+[ ] Register new user
+[ ] Login with valid credentials
+[ ] Login with invalid credentials
+[ ] Get user profile
+[ ] Update user profile
+[ ] Change password
+[ ] Verify JWT token
+
+TRAIN SERVICE:
+[ ] Search trains by route
+[ ] Get train details
+[ ] Get train route
+[ ] Get seat availability
+[ ] Search stations
+
+BOOKING SERVICE:
+[ ] Create booking
+[ ] Get booking by ID
+[ ] Get booking by PNR
+[ ] Get user booking history
+[ ] Cancel booking
+[ ] Process payment
+[ ] Generate ticket
+[ ] Download ticket
+
+API GATEWAY:
+[ ] Route to User Service
+[ ] Route to Train Service
+[ ] Route to Booking Service
+[ ] JWT validation
+[ ] CORS handling
+[ ] Circuit breaker fallback
+
+================================================================================
+POSTMAN COLLECTION STRUCTURE
+================================================================================
+
+ORRS API Collection
+├── User Service
+│   ├── Register
+│   ├── Login
+│   ├── Get Profile
+│   ├── Update Profile
+│   └── Change Password
+├── Train Service
+│   ├── Search Trains
+│   ├── Get Train Details
+│   ├── Get Route
+│   ├── Get Seats
+│   └── Search Stations
+└── Booking Service
+    ├── Create Booking
+    ├── Get Booking
+    ├── Get PNR Status
+    ├── Booking History
+    ├── Cancel Booking
+    ├── Process Payment
+    └── Download Ticket
+
+================================================================================
+KEY PRINCIPLES
+================================================================================
+
+1. SINGLE RESPONSIBILITY
+   - Each service manages its own domain
+   - User Service = User management ONLY
+   - Don't mix concerns
+
+2. SERVICE INDEPENDENCE
+   - Services communicate via REST APIs
+   - No direct database access across services
+   - Each service can be deployed independently
+
+3. DATA OWNERSHIP
+   - User Service owns users table
+   - Train Service owns trains, stations, coaches, seats
+   - Booking Service owns bookings, passengers, payments, tickets
+
+4. AUTHENTICATION
+   - User Service generates JWT
+   - API Gateway validates JWT
+   - Services trust validated requests from Gateway
+
+5. ERROR HANDLING
+   - Return proper HTTP status codes
+   - Consistent error response format
+   - Circuit breaker for service failures
+
+================================================================================
+END OF SERVICE ENDPOINTS GUIDE
+================================================================================

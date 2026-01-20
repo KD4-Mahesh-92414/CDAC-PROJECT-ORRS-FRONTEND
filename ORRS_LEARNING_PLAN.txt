@@ -1,0 +1,501 @@
+================================================================================
+    ORRS PROJECT LEARNING PATH - 4 WEEK PLAN
+    Spring Boot → Microservices → Full Stack Implementation
+================================================================================
+
+================================================================================
+WEEK 1: SPRING BOOT BASICS + DATABASE SETUP
+================================================================================
+
+DAY 1-2: DATABASE DESIGN
+------------------------
+Learn:
+- MySQL advanced queries (JOINs, subqueries)
+- Database normalization review
+- Foreign key relationships
+
+Implement:
+✅ Create all 18 tables
+✅ Insert sample data (5-10 records per table)
+✅ Test relationships with queries
+
+Resources:
+- MySQL documentation
+- Your existing table structure
+
+---
+
+DAY 3-4: SPRING DATA JPA
+-------------------------
+Learn:
+- Entity mapping (@Entity, @Table)
+- Relationships (@OneToMany, @ManyToOne)
+- Repository pattern (JpaRepository)
+- Custom queries (@Query)
+
+Implement:
+✅ Create Entity classes for: User, Train, Station, Booking
+✅ Create Repository interfaces
+✅ Test CRUD operations
+
+Code Example:
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long userId;
+    private String fullName;
+    private String email;
+    // getters, setters
+}
+
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+}
+
+---
+
+DAY 5-7: REST APIs + SERVICE LAYER
+-----------------------------------
+Learn:
+- @RestController, @RequestMapping
+- Service layer pattern
+- DTO (Data Transfer Objects)
+- Exception handling (@ControllerAdvice)
+
+Implement:
+✅ User Service: Register, Login APIs
+✅ Train Service: Search trains API
+✅ Test with Postman
+
+Code Example:
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    @Autowired
+    private UserService userService;
+    
+    @PostMapping("/register")
+    public ResponseEntity<User> register(@RequestBody UserDTO dto) {
+        return ResponseEntity.ok(userService.register(dto));
+    }
+}
+
+Resources:
+- Spring Boot REST API tutorial
+- Postman for testing
+
+================================================================================
+WEEK 2: SECURITY + MICROSERVICES BASICS
+================================================================================
+
+DAY 8-10: SPRING SECURITY + JWT
+--------------------------------
+Learn:
+- Spring Security basics
+- JWT token generation/validation
+- Password encoding (BCrypt)
+- Authentication filter
+
+Implement:
+✅ JWT utility class
+✅ Login endpoint returns JWT
+✅ Secure APIs with JWT validation
+✅ Role-based access (Customer, Admin)
+
+Code Example:
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) {
+        http.csrf().disable()
+            .authorizeHttpRequests()
+            .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+            .anyRequest().authenticated();
+        return http.build();
+    }
+}
+
+Resources:
+- Spring Security documentation
+- JWT.io for understanding tokens
+- Baeldung Spring Security tutorials
+
+---
+
+DAY 11-12: MICROSERVICES CONCEPTS
+----------------------------------
+Learn:
+- What are microservices?
+- Service-to-service communication (REST)
+- RestTemplate / WebClient
+
+Implement:
+✅ Split into 3 services (User, Train, Booking)
+✅ Each service runs on different port
+✅ Booking service calls Train service using RestTemplate
+
+Code Example:
+// In Booking Service
+@Service
+public class BookingService {
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    public Train getTrainDetails(Long trainId) {
+        String url = "http://localhost:8082/api/trains/" + trainId;
+        return restTemplate.getForObject(url, Train.class);
+    }
+}
+
+Resources:
+- Spring Cloud documentation
+- Microservices.io patterns
+
+---
+
+DAY 13-14: SPRING CLOUD GATEWAY
+--------------------------------
+Learn:
+- API Gateway pattern
+- Spring Cloud Gateway setup
+- Route configuration
+- CORS configuration
+
+Implement:
+✅ Create api-gateway project
+✅ Configure routes for 3 services
+✅ Test all APIs through gateway (port 8080)
+✅ Update React frontend to use gateway URL
+
+Resources:
+- Spring Cloud Gateway docs
+- YouTube: "Spring Cloud Gateway Tutorial"
+
+================================================================================
+WEEK 3: ADVANCED MICROSERVICES PATTERNS
+================================================================================
+
+DAY 15-16: CIRCUIT BREAKER (RESILIENCE4J)
+------------------------------------------
+Learn:
+- Circuit breaker pattern
+- Resilience4j library
+- Fallback methods
+
+Implement:
+✅ Add Resilience4j dependency
+✅ Configure circuit breaker in gateway
+✅ Create fallback endpoints
+✅ Test by stopping a service
+
+Code Example:
+@CircuitBreaker(name = "trainService", fallbackMethod = "trainFallback")
+public Train getTrainDetails(Long trainId) {
+    return restTemplate.getForObject(url, Train.class);
+}
+
+public Train trainFallback(Long trainId, Exception e) {
+    return new Train(); // Return cached or default data
+}
+
+Resources:
+- Resilience4j documentation
+- Baeldung Circuit Breaker tutorial
+
+---
+
+DAY 17-18: SERVICE DISCOVERY (EUREKA) - OPTIONAL
+-------------------------------------------------
+Learn:
+- Service registry pattern
+- Netflix Eureka
+- Dynamic service discovery
+
+Implement:
+✅ Create eureka-server project
+✅ Register all services with Eureka
+✅ Update gateway to discover services dynamically
+
+Skip if time-constrained - Use hardcoded URLs
+
+---
+
+DAY 19-20: DISTRIBUTED TRANSACTIONS (SAGA PATTERN)
+---------------------------------------------------
+Learn:
+- Saga pattern (choreography)
+- Compensating transactions
+- Event-driven architecture basics
+
+Implement:
+✅ Booking flow: Lock seats → Create booking → Payment → Ticket
+✅ Rollback logic if any step fails
+✅ Test failure scenarios
+
+Code Example:
+public class BookingSaga {
+    public BookingResult execute(BookingRequest request) {
+        try {
+            seatService.lockSeats(request.getSeats());
+            Booking booking = bookingService.create(request);
+            Payment payment = paymentService.process(booking);
+            Ticket ticket = ticketService.generate(booking);
+            return new BookingResult(booking, ticket);
+        } catch (Exception e) {
+            rollback(); // Unlock seats, cancel booking
+            throw e;
+        }
+    }
+}
+
+Resources:
+- Microservices.io Saga pattern
+- YouTube: "Saga Pattern Explained"
+
+---
+
+DAY 21: TESTING
+---------------
+Learn:
+- JUnit 5
+- Mockito for mocking
+- Integration testing
+
+Implement:
+✅ Unit tests for services
+✅ Integration tests for controllers
+✅ Test coverage > 60%
+
+Code Example:
+@SpringBootTest
+class UserServiceTest {
+    @Mock
+    private UserRepository userRepository;
+    
+    @InjectMocks
+    private UserService userService;
+    
+    @Test
+    void testRegisterUser() {
+        // Test logic
+    }
+}
+
+================================================================================
+WEEK 4: FRONTEND INTEGRATION + DEPLOYMENT
+================================================================================
+
+DAY 22-23: REACT INTEGRATION
+-----------------------------
+Learn:
+- Axios for API calls
+- React Context for state management
+- JWT storage (localStorage)
+
+Implement:
+✅ Connect all React pages to backend APIs
+✅ Handle authentication (store JWT)
+✅ Protected routes based on role
+✅ Error handling and loading states
+
+Code Example:
+// API service
+const API_URL = 'http://localhost:8080';
+
+export const trainService = {
+  search: (from, to, date) => 
+    axios.get(`${API_URL}/api/trains/search`, { params: { from, to, date } }),
+  
+  getById: (id) => 
+    axios.get(`${API_URL}/api/trains/${id}`)
+};
+
+---
+
+DAY 24-25: DOCKER (OPTIONAL)
+-----------------------------
+Learn:
+- Docker basics
+- Dockerfile creation
+- Docker Compose
+
+Implement:
+✅ Create Dockerfile for each service
+✅ Create docker-compose.yml
+✅ Run entire application with one command
+
+Skip if time-constrained
+
+---
+
+DAY 26-27: DOCUMENTATION + POLISH
+----------------------------------
+Learn:
+- Swagger/OpenAPI
+- README documentation
+
+Implement:
+✅ Add Swagger UI to services
+✅ Write comprehensive README
+✅ Create API documentation
+✅ Add comments to code
+
+---
+
+DAY 28: FINAL TESTING + DEMO PREP
+----------------------------------
+✅ End-to-end testing
+✅ Fix bugs
+✅ Prepare demo scenarios
+✅ Create presentation
+
+================================================================================
+LEARNING RESOURCES (PRIORITY ORDER)
+================================================================================
+
+1. MUST WATCH (VIDEO)
+---------------------
+- Spring Boot Microservices by Telusko (YouTube)
+- Spring Cloud Gateway Tutorial by Java Brains
+- JWT Authentication in Spring Boot by Amigoscode
+
+2. MUST READ (DOCUMENTATION)
+-----------------------------
+- Spring Boot Official Docs
+- Spring Cloud Gateway Docs
+- Resilience4j Documentation
+
+3. PRACTICE (HANDS-ON)
+----------------------
+- Build each feature incrementally
+- Test with Postman after each API
+- Commit code to Git daily
+
+================================================================================
+DAILY ROUTINE
+================================================================================
+
+Morning (2-3 hours):
+- Watch tutorial videos
+- Read documentation
+- Take notes
+
+Afternoon (3-4 hours):
+- Implement learned concepts
+- Write code for ORRS
+- Test with Postman
+
+Evening (1-2 hours):
+- Debug issues
+- Code review
+- Git commit
+
+================================================================================
+LEARNING CHECKLIST
+================================================================================
+
+CORE SPRING BOOT (Already Done ✅)
+----------------------------------
+[x] Spring Boot basics
+[x] REST APIs
+[x] Database connectivity
+
+WEEK 1 GOALS
+------------
+[ ] Spring Data JPA entities
+[ ] Repository pattern
+[ ] Service layer
+[ ] Basic CRUD APIs
+
+WEEK 2 GOALS
+------------
+[ ] Spring Security
+[ ] JWT authentication
+[ ] Microservices setup
+[ ] API Gateway
+
+WEEK 3 GOALS
+------------
+[ ] Circuit Breaker
+[ ] Saga pattern
+[ ] Service communication
+[ ] Error handling
+
+WEEK 4 GOALS
+------------
+[ ] Frontend integration
+[ ] Testing
+[ ] Documentation
+[ ] Demo ready
+
+================================================================================
+IMPLEMENTATION ORDER
+================================================================================
+
+1. Database (Day 1-2)
+2. User Service (Day 3-7)
+3. Train Service (Day 8-10)
+4. Booking Service (Day 11-14)
+5. API Gateway (Day 13-14)
+6. Security (Day 8-10)
+7. Circuit Breaker (Day 15-16)
+8. Saga Pattern (Day 19-20)
+9. Frontend (Day 22-23)
+10. Testing & Polish (Day 24-28)
+
+================================================================================
+PRO TIPS
+================================================================================
+
+1. Learn by Doing - Don't just watch tutorials, code along
+2. Git Commits - Commit after each feature
+3. Test Frequently - Use Postman after every API
+4. Ask Questions - Use Stack Overflow, ChatGPT
+5. Don't Overcomplicate - Start simple, add features gradually
+6. Focus on MVP - Get basic booking flow working first
+7. Document as You Go - Write README sections daily
+
+================================================================================
+SKILL PROGRESSION
+================================================================================
+
+Week 1: Junior Developer (Basic Spring Boot)
+Week 2: Mid-Level Developer (Security + Microservices)
+Week 3: Senior Developer (Advanced Patterns)
+Week 4: Full-Stack Developer (Complete System)
+
+================================================================================
+MICROSERVICES ARCHITECTURE
+================================================================================
+
+React Frontend (Port 5173)
+    ↓
+API Gateway (Port 8080) ← Single Entry Point
+    ↓
+    ├→ User Service (Port 8081)
+    ├→ Train Service (Port 8082)
+    └→ Booking Service (Port 8083)
+         ↓
+    MySQL Database
+
+================================================================================
+FINAL NOTES
+================================================================================
+
+Follow this plan consistently, and you'll have a production-ready ORRS 
+with modern microservices architecture in 4 weeks!
+
+Key Success Factors:
+- Consistency (code daily)
+- Testing (test after each feature)
+- Documentation (document as you build)
+- Incremental progress (small wins daily)
+
+Good luck with your project! 🚀
+
+================================================================================
+END OF LEARNING PLAN
+================================================================================

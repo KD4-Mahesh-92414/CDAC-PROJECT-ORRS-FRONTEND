@@ -1,0 +1,5 @@
+package com.orrs.enums;
+
+public enum PreferedClass {
+   SLEEPER_CLASS , THIRD_TIRE_CLASS, SECOND_TIRE_CLASS, FIRST_TIRE_CLASS, AC_CHAIR_CAR, SECOND_SEATING
+}
