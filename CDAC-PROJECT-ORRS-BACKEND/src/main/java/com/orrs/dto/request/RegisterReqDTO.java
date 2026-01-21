@@ -3,6 +3,7 @@ package com.orrs.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +11,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class RegisterDTO {
+@AllArgsConstructor
+public class RegisterReqDTO {
 
     @NotBlank(message = "Full name is required")
     @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
@@ -24,6 +26,6 @@ public class RegisterDTO {
 	private String cnfPassword;
 	@NotBlank(message = "Mobile No is required")
 	@Size(min = 10, max = 10)
-	private String mobileNo;
+	private String mobile;
 	
 }

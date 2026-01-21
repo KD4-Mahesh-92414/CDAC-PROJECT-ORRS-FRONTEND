@@ -15,7 +15,7 @@ public class ApiResponseDTO<T> {
 	private T data;
 	private LocalDate timeStamp;
 	
-	public ApiResponseDTO(String message, String status, T data, LocalDate timeStamp) {
+	public ApiResponseDTO(String message, String status, T data) {
 		super();
 		this.message = message;
 		this.status = status;
