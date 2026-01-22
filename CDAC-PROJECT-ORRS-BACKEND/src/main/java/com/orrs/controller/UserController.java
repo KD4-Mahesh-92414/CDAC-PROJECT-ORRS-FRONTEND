@@ -1,7 +1,12 @@
 package com.orrs.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -11,23 +16,28 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.orrs.dto.request.AuthReqDTO;
 import com.orrs.dto.request.RegisterReqDTO;
 import com.orrs.dto.request.UpdatePasswordReqDTO;
 import com.orrs.dto.request.UpdateUserReqDTO;
+import com.orrs.dto.response.AuthRespDTO;
+import com.orrs.security.JwtUtils;
+import com.orrs.security.UserPrincipal;
 import com.orrs.services.UserService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+
 import lombok.RequiredArgsConstructor;
 
 @Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
+@CrossOrigin(origins= "*")
 public class UserController {
 
 	private final UserService userService;
-
+	private final AuthenticationManager authManager;
+	private final JwtUtils jwtUtils;
 	
 //	 POST /users/register
 //	   - Register new user account
@@ -46,9 +56,9 @@ public class UserController {
 //	   - Output: {message, status, data( userId, fullName, email, mobile, gender, dob, address, preferredClass), time_stamp }
 //	   - Requires authentication
 //	   - User can only view their own profile (or admin can view any)
-	@GetMapping("/{userId}")
-	public ResponseEntity<?> getUserDetails(@PathVariable @NotNull @Min(1) Long userId){
-		return ResponseEntity.ok(userService.getUserDetails(userId));
+	@GetMapping("/me")
+	public ResponseEntity<?> getUserDetails(@AuthenticationPrincipal UserPrincipal principal){
+		return ResponseEntity.ok(userService.getUserDetails(principal.getUserId()));
 	}
 
 //	PUT /users/update/{userId}
@@ -58,9 +68,9 @@ public class UserController {
 //	   - Requires authentication
 //	   - Cannot update password, role through this end_point
 
-	@PutMapping("/update/{userId}")
-	public ResponseEntity<?> updateUserDetails(@RequestBody @Valid UpdateUserReqDTO updatedUserDto, @PathVariable @NotNull Long userId){
-		return ResponseEntity.ok(userService.updateUserDetails(updatedUserDto, userId));
+	@PutMapping("/update/me")
+	public ResponseEntity<?> updateUserDetails(@RequestBody @Valid UpdateUserReqDTO updatedUserDto, @AuthenticationPrincipal UserPrincipal principal){
+		return ResponseEntity.ok(userService.updateUserDetails(updatedUserDto, principal.getUserId()));
 	}
 	
 //	 PATCH /users/update/password/{userId}
@@ -69,19 +79,30 @@ public class UserController {
 //	   - Output: { message, status, data(null), time_stamp }
 //	   - Requires authentication
 //	   - Validates old password before updating
-	@PatchMapping("/update/password/{userId}")
-	public ResponseEntity<?> updateUserPassword(@RequestBody @Valid  UpdatePasswordReqDTO passwordDto, @PathVariable @NotNull Long userId){
-		return ResponseEntity.ok(userService.updateUserPassword(passwordDto, userId));
+	@PatchMapping("/update/password")
+	public ResponseEntity<?> updateUserPassword(@RequestBody @Valid  UpdatePasswordReqDTO passwordDto,  @AuthenticationPrincipal UserPrincipal principal){
+		return ResponseEntity.ok(userService.updateUserPassword(passwordDto, principal.getUserId()));
 	}
 	
 //	 DELETE /users/{userId}
 //	   - Soft delete user account
 //	   - Sets user status to deleted
 //	   - Requires authentication (user end_point)
-	@DeleteMapping("/{userId}")
-	public ResponseEntity<?> deleteAccount(@PathVariable @NotNull @Min(1) Long userId ){
-		return ResponseEntity.ok(userService.deleteAccount(userId));
+	@DeleteMapping("/me")
+	public ResponseEntity<?> deleteAccount(@AuthenticationPrincipal UserPrincipal principal){
+		return ResponseEntity.ok(userService.deleteAccount(principal.getUserId()));
 	}
 
+	@PostMapping("/login")
+	public ResponseEntity<?> userLogin(@RequestBody @Valid AuthReqDTO authReq){
+		
+		Authentication holder = new UsernamePasswordAuthenticationToken(authReq.getEmail(), authReq.getPassword());
+	    System.out.println("IsAuthenticated" +holder.isAuthenticated());
+		Authentication fullyAuth = authManager.authenticate(holder);
+		System.out.println("IsAuthenticated" + fullyAuth.isAuthenticated());
+		
+		UserPrincipal principal = (UserPrincipal) fullyAuth.getPrincipal();
+        return ResponseEntity.ok(new AuthRespDTO(jwtUtils.generateToken(principal), "Login Successfull"));
+	}
 	
 }

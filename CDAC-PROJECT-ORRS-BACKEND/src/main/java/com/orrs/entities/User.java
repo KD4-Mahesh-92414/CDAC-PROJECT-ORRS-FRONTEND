@@ -41,7 +41,7 @@ public class User extends BaseEntity{
 	@Column(length = 12, name="aadhar_no", unique = true)
 	private String aadharNo;
 	@Enumerated(EnumType.STRING)
-	private Role role = Role.CUSTOMER_ROLE;
+	private Role role = Role.ROLE_CUSTOMER;
 	@Enumerated(EnumType.STRING)
 	@Column(name="account_status")
 	private AccountStatus status = AccountStatus.ACTIVE;

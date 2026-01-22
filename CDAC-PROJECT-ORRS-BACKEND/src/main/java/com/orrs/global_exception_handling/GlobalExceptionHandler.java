@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.naming.AuthenticationException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -65,5 +67,12 @@ public class GlobalExceptionHandler {
 				.stream().collect(Collectors.toMap(voilation -> voilation.getPropertyPath().toString(), ConstraintViolation::getMessage, (v1, v2)-> v1+" "+v2));
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
 	}
+	
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
+		System.out.println("in catch -Spring sec detected  Authentication Exception "+e);
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponseDTO("FAILED", e.getMessage()));
+	}
+
 	
 }
