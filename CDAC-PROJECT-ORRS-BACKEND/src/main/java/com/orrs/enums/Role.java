@@ -2,5 +2,5 @@ package com.orrs.enums;
 
 public enum Role {
 
-	CUSTOMER_ROLE, ADMIN_ROLE, MANAGER_ROLE
+	ROLE_CUSTOMER, ROLE_ADMIN, ROLE_MANAGER
 }

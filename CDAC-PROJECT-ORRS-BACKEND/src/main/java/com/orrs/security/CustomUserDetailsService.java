@@ -1,0 +1,36 @@
+package com.orrs.security;
+
+import java.util.List;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import com.orrs.custom_exceptions.ResourceNotFoundException;
+import com.orrs.entities.User;
+import com.orrs.repositories.UserRepository;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+@Transactional
+@Service
+@RequiredArgsConstructor
+
+public class CustomUserDetailsService implements UserDetailsService{
+
+	private final UserRepository userRepository;
+	
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+		User user = userRepository
+				        .findByEmail(email)
+				        .orElseThrow(()-> new UsernameNotFoundException("User by this email doesn't exists"));
+				
+		return new UserPrincipal(user.getId(), user.getEmail(), user.getPassword(), 
+				List.of(new SimpleGrantedAuthority(user.getRole().name())),user.getRole().name());
+	}
+
+}
