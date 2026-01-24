@@ -6,9 +6,6 @@ import com.orrs.dto.request.UpdatePasswordReqDTO;
 import com.orrs.dto.request.UpdateStatusReqDTO;
 import com.orrs.dto.request.UpdateUserReqDTO;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-
 
 public interface UserService {
 
