@@ -16,9 +16,11 @@ import lombok.ToString;
 public class StationAdminViewDTO {
 
     private Long id;
-    private String stationName;
     private String stationCode;
+    private String stationName;
     private String city;
+    private String state;
+    private String zone;
     private StationStatus status;
 }
 
