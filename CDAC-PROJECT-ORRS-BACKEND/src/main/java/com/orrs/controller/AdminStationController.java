@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.orrs.dto.request.AddStationReqDTO;
 import com.orrs.dto.request.UpdateStationReqDTO;
+import com.orrs.dto.request.UpdateStationStatusReqDTO;
 import com.orrs.services.StationService;
 
 import jakarta.validation.Valid;
@@ -52,6 +53,20 @@ public class AdminStationController {
         return ResponseEntity.ok(
                 stationService.updateStation(stationId, updateStationReqDTO));
     }
+    
+ // PATCH /admin/stations/{stationId}/status
+ // - Update station status
+ // - Input: UpdateStationStatusReqDTO
+ // - Requires ADMIN authentication
+ @PatchMapping("/{stationId}/status")
+ public ResponseEntity<?> updateStationStatus(
+         @PathVariable Long stationId,
+         @RequestBody @Valid UpdateStationStatusReqDTO updateStationStatusReqDTO) {
+
+     return ResponseEntity.ok(
+             stationService.updateStationStatus(stationId, updateStationStatusReqDTO));
+ }
+
 
     // DELETE /admin/stations/{stationId}
     // - Soft delete station

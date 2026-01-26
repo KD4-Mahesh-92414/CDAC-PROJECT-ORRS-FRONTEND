@@ -35,6 +35,7 @@ public class SecurityConfiguration {
 		  .requestMatchers(HttpMethod.POST, "/admin/**").permitAll()
 		  .requestMatchers(HttpMethod.PUT, "/admin/**").permitAll()
 		  .requestMatchers(HttpMethod.DELETE, "/admin/**").permitAll()
+		  .requestMatchers(HttpMethod.PATCH, "/admin/**").permitAll()
 		  .anyRequest().authenticated());
 		   //add custom jwt filter before 1st authentication filter 
 		 // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
