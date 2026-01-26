@@ -11,6 +11,7 @@ import com.orrs.custom_exceptions.ResourceNotFoundException;
 import com.orrs.dto.common.ApiResponseDTO;
 import com.orrs.dto.request.AddTrainReqDTO;
 import com.orrs.dto.request.UpdateTrainReqDTO;
+import com.orrs.dto.request.UpdateTrainStatusReqDTO;
 import com.orrs.dto.response.TrainAdminViewDTO;
 import com.orrs.entities.Station;
 import com.orrs.entities.Train;
@@ -95,6 +96,28 @@ public class TrainServiceImpl implements TrainService {
 
         return new ApiResponseDTO<>("Train updated successfully", "SUCCESS", null);
     }
+    
+    @Override
+    public ApiResponseDTO<?> updateTrainStatus(
+            Long trainId,
+            UpdateTrainStatusReqDTO dto
+    ) {
+
+        Train train = trainRepo.findById(trainId)
+                .orElseThrow(() -> new ResourceNotFoundException("Train does not exist"));
+
+        TrainStatus newStatus = dto.getStatus();
+
+        // optional: prevent redundant update
+        if (train.getTrainStatus() == newStatus) {
+            throw new InvalidRequestException("Train is already in the given status");
+        }
+
+        train.setTrainStatus(newStatus);
+
+        return new ApiResponseDTO<>("Train status updated successfully", "SUCCESS", null);
+    }
+
 
     @Override
     public ApiResponseDTO<?> deleteTrain(Long trainId) {

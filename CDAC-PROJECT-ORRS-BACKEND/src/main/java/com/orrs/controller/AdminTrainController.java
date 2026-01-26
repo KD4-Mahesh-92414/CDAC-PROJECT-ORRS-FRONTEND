@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.orrs.dto.request.AddTrainReqDTO;
 import com.orrs.dto.request.UpdateTrainReqDTO;
+import com.orrs.dto.request.UpdateTrainStatusReqDTO;
+import com.orrs.security.UserPrincipal;
 import com.orrs.services.TrainService;
 
 import jakarta.validation.Valid;
@@ -70,4 +72,18 @@ public class AdminTrainController {
         return ResponseEntity.ok(
                 trainService.deleteTrain(trainId));
     }
+    
+    // PATCH /admin/trains/{trainId}/status
+    // - Update train status (e.g. ACTIVE / INACTIVE)
+    // - Requires ADMIN authentication
+    @PatchMapping("/{trainId}/status")
+    public ResponseEntity<?> updateTrainStatus(
+         @PathVariable Long trainId,
+         @RequestBody @Valid UpdateTrainStatusReqDTO dto ) 
+    {
+     return ResponseEntity.ok(
+             trainService.updateTrainStatus(trainId, dto)
+     );
+ }
+
 }

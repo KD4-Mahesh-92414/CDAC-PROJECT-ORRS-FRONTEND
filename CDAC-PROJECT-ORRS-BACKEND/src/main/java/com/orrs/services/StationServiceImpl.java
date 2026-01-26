@@ -10,6 +10,7 @@ import com.orrs.custom_exceptions.ResourceNotFoundException;
 import com.orrs.dto.common.ApiResponseDTO;
 import com.orrs.dto.request.AddStationReqDTO;
 import com.orrs.dto.request.UpdateStationReqDTO;
+import com.orrs.dto.request.UpdateStationStatusReqDTO;
 import com.orrs.dto.response.StationAdminViewDTO;
 import com.orrs.entities.Station;
 import com.orrs.enums.StationStatus;
@@ -70,6 +71,29 @@ public class StationServiceImpl implements StationService {
         return new ApiResponseDTO<>("Station updated successfully", "SUCCESS", null);
     }
 
+    
+    @Override
+    public ApiResponseDTO<?> updateStationStatus(
+            Long stationId,
+            UpdateStationStatusReqDTO dto
+    ) {
+
+        Station station = stationRepo.findById(stationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Station does not exist"));
+
+        StationStatus newStatus = dto.getStatus();
+
+        // optional safety: prevent redundant update
+        if (station.getStatus() == newStatus) {
+            throw new ResourceAlreadyExistsException("Station is already in the given status");
+        }
+
+        station.setStatus(newStatus);
+
+        return new ApiResponseDTO<>("Station status updated successfully", "SUCCESS", null);
+    }
+
+    
     @Override
     public ApiResponseDTO<?> deleteStation(Long stationId) {
 
