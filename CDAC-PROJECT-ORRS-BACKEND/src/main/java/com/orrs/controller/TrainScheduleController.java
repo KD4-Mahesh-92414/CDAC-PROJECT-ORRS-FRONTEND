@@ -1,7 +1,7 @@
 package com.orrs.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +19,7 @@ public class TrainScheduleController {
 	
 	private final TrainScheduleService trainScheduleService;
 	
-	@GetMapping("/search")
+	@PostMapping("/search")
 	public ResponseEntity<?> searchTrains(@RequestBody @Valid TrainSearchReqDTO searchDto){
 		
 		return ResponseEntity.ok(trainScheduleService.searchTrains(searchDto));

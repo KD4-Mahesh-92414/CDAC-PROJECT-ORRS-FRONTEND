@@ -18,10 +18,11 @@ import com.orrs.entities.TrainFare;
 import com.orrs.enums.BookingStatus;
 import com.orrs.enums.ScheduleStatus;
 import com.orrs.repositories.BookingRespository;
-import com.orrs.repositories.StationRespository;
+import com.orrs.repositories.StationRepository;
 import com.orrs.repositories.TrainCoachRepository;
 import com.orrs.repositories.TrainFareRepository;
 import com.orrs.repositories.TrainScheduleRepository;
+import com.orrs.custom_exceptions.BusinessLogicException;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class TrainScheduleServiceImpl implements TrainScheduleService{
 	
 	private final TrainScheduleRepository scheduleRepository;
-	private final StationRespository stationRepository;
+	private final StationRepository stationRepository;
 	private final TrainFareRepository fareRepository;     
     private final TrainCoachRepository coachRepository;    
     private final BookingRespository bookingRepository;     
@@ -41,7 +42,7 @@ public class TrainScheduleServiceImpl implements TrainScheduleService{
     public List<SearchResultRespDTO> searchTrains(Long sourceId, Long destId, LocalDate date) {
         // 1. Basic Validation
         if (sourceId.equals(destId)) {
-            throw new IllegalArgumentException("Source and Destination cannot be same");
+            throw new BusinessLogicException("Source and Destination cannot be same");
         }
         
         // 2. Execute the optimized query
@@ -55,24 +56,24 @@ public class TrainScheduleServiceImpl implements TrainScheduleService{
 
         // 1. Check for Past Dates
         if (searchDto.getJourneyDate().isBefore(today)) {
-            throw new IllegalArgumentException("Journey date cannot be in the past.");
+            throw new BusinessLogicException("Journey date cannot be in the past.");
         }
 
         // 2. Check for Advance Reservation Period (ARP)
         if (searchDto.getJourneyDate().isAfter(today.plusDays(MAX_ADVANCE_DAYS))) {
-            throw new IllegalArgumentException("Bookings are only allowed up to " + MAX_ADVANCE_DAYS + " days in advance.");
+            throw new BusinessLogicException("Bookings are only allowed up to " + MAX_ADVANCE_DAYS + " days in advance.");
         }
         
 
         // Resolve Stations
         Station sourceStation = stationRepository.findByStationNameIgnoreCase(searchDto.getSourceStation())
-                .orElseThrow(() -> new RuntimeException("Source station not found: " + searchDto.getSourceStation()));
+                .orElseThrow(() -> new BusinessLogicException("Source station not found: " + searchDto.getSourceStation()));
 
         Station destStation = stationRepository.findByStationNameIgnoreCase(searchDto.getDestinationStation())
-                .orElseThrow(() -> new RuntimeException("Destination station not found: " + searchDto.getDestinationStation()));
+                .orElseThrow(() -> new BusinessLogicException("Destination station not found: " + searchDto.getDestinationStation()));
 
         if (sourceStation.getId().equals(destStation.getId())) {
-            throw new IllegalArgumentException("Source and Destination cannot be the same.");
+            throw new BusinessLogicException("Source and Destination cannot be the same.");
         }
 
         // Execute Search

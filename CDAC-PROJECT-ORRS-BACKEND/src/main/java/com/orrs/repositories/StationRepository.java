@@ -15,6 +15,8 @@ public interface StationRepository extends JpaRepository<Station, Long> {
 
     Optional<Station> findByStationCode(String stationCode);
 
+    Optional<Station> findByStationNameIgnoreCase(String name);
+
     @Query("""
         select new com.orrs.dto.response.StationAdminViewDTO(
             s.id, s.stationCode, s.stationName, s.city, s.state, s.zone, s.status

@@ -27,6 +27,7 @@ public class SearchResultRespDTO {
     private Integer travelDurationMinutes; 
     
     private Integer distanceKm;       // Needed for fare calculation on UI
+    private String daysOfRun;         // Days when train runs (e.g., "Mon,Wed,Fri")
 
     // Add this new field
     private List<TrainCoachRespDTO> classOptions;

@@ -13,10 +13,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.orrs.custom_exceptions.BusinessLogicException;
 import com.orrs.custom_exceptions.InvalidRequestException;
 import com.orrs.custom_exceptions.PasswordMismatchException;
 import com.orrs.custom_exceptions.ResourceAlreadyExistsException;
 import com.orrs.custom_exceptions.ResourceNotFoundException;
+import com.orrs.custom_exceptions.ServiceException;
 import com.orrs.dto.common.ApiErrorResponseDTO;
 
 import jakarta.validation.ConstraintViolation;
@@ -72,6 +74,16 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
 		System.out.println("in catch -Spring sec detected  Authentication Exception "+e);
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponseDTO("FAILED", e.getMessage()));
+	}
+	
+	@ExceptionHandler(BusinessLogicException.class)
+	public ResponseEntity<?> handleBusinessLogicException(BusinessLogicException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiErrorResponseDTO("FAILED", ex.getMessage()));
+	}
+	
+	@ExceptionHandler(ServiceException.class)
+	public ResponseEntity<?> handleServiceException(ServiceException ex) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiErrorResponseDTO("FAILED", ex.getMessage()));
 	}
 
 	

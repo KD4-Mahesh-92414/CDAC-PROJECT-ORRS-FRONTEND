@@ -28,6 +28,7 @@ public interface TrainScheduleRepository extends JpaRepository<TrainSchedule, Lo
             AS integer
         ),
 		        cast((destRoute.distanceFromSource - srcRoute.distanceFromSource) as integer),
+		        t.daysOfRun,
 		        null
 		    )
 		    FROM TrainSchedule ts
