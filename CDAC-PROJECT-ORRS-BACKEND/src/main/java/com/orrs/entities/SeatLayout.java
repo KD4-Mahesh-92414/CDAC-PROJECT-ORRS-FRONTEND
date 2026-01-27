@@ -36,7 +36,7 @@ public class SeatLayout extends BaseEntity {
     private CoachType coachType;
 
     @Column(nullable = false)
-    private Integer seatNumber; // 1 to 72
+    private Integer seatNumber; // 1 to 72 x (no of coachTypes)
 
     @Enumerated(EnumType.STRING)
     private SeatType seatType;
