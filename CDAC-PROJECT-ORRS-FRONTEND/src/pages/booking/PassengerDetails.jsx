@@ -1,6 +1,7 @@
-import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
-import { BookingContext } from "../../contexts/BookingContext";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { setPassengers } from "../../store/slices/bookingSlice";
 import PassengerCard from "../../components/forms/PassengerCard";
 import toast from "react-hot-toast";
 
@@ -8,8 +9,8 @@ import toast from "react-hot-toast";
 
 export default function PassengerDetails() {
   const navigate = useNavigate();
-  const { selectedTrain, selectedSeats, passengers, setPassengers, fareData } =
-    useContext(BookingContext);
+  const dispatch = useDispatch();
+  const { selectedTrain, selectedSeats, passengers, fareData } = useSelector((state) => state.booking);
   const [contactInfo, setContactInfo] = useState({
     email: "",
     paymentMode: "UPI",
@@ -32,9 +33,9 @@ export default function PassengerDetails() {
           gender: "Male",
           country: "India",
         }));
-      setPassengers(newPassengers);
+      dispatch(setPassengers(newPassengers));
     }
-  }, [selectedTrain, selectedSeats, navigate, passengers, setPassengers]);
+  }, [selectedTrain, selectedSeats, navigate, passengers, dispatch]);
 
   const handlePassengerChange = (index, field, value) => {
     const updatedPassengers = [...passengers];
@@ -42,7 +43,7 @@ export default function PassengerDetails() {
       ...updatedPassengers[index],
       [field]: value,
     };
-    setPassengers(updatedPassengers);
+    dispatch(setPassengers(updatedPassengers));
   };
 
   const handleContinue = () => {

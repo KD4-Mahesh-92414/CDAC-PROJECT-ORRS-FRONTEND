@@ -1,45 +1,48 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../store/slices/authSlice";
 import train from "../../assets/train.png";
 import Modal from "../common/Modal";
 import { Login } from "../../pages/auth/Login";
-import { useAuth } from "../../contexts/AuthContext";
 
+/**
+ * Navbar Component
+ * Responsibility: Navigation with simplified menu structure and Redux integration
+ */
 export default function Navbar() {
-  const { isLoggedIn, logout } = useAuth();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [showLogin, setShowLogin] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null);
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
 
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
+  // Simplified navigation items as per requirements
   const trainItems = [
-    { label: "Group Booking", path: "/trains/group-booking" },
     { label: "PNR Status", path: "/trains/pnr-status" },
-    { label: "Live Train Status", path: "/trains/live-status" },
     { label: "Cancelled Trains", path: "/trains/cancelled" },
   ];
 
   const helpItems = [
     { label: "How to Book", path: "/help/how-to-book" },
-    { label: "Cancellation & Refund", path: "/help/cancellation-refund" },
-    { label: "Travel Guidelines", path: "/help/travel-guidelines" },
     { label: "FAQs", path: "/help/faqs" },
-  ];
-
-  const accountItems = [
-    { label: "My Profile", path: "/account/profile" },
-    { label: "Edit Profile", path: "/account/edit-profile" },
-    { label: "Change Password", path: "/account/change-password" },
-    { label: "Booking History", path: "/account/bookings" },
-    { label: "Payment History", path: "/account/payments" },
-    { label: "Saved Passengers", path: "/account/saved-passengers" },
   ];
 
   const contactItems = [
     { label: "Customer Support", path: "/contact/support" },
     { label: "Feedback", path: "/contact/feedback" },
-    { label: "Emergency Helpline", path: "/contact/emergency" },
+  ];
+
+  const accountItems = [
+    { label: "My Profile", path: "/account/profile" },
+    { label: "Edit Profile", path: "/account/edit-profile" },
+    { label: "Booking History", path: "/account/bookings" },
+    { label: "Change Password", path: "/account/change-password" },
   ];
 
   const NavDropdown = ({
@@ -97,7 +100,7 @@ export default function Navbar() {
           <>
             <div className="border-t border-violet-300 my-3 mx-3"></div>
             <button
-              onClick={() => logout()}
+              onClick={handleLogout}
               className="w-full text-left px-5 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-700 transition-all duration-200 font-medium flex items-center gap-3 text-sm rounded-lg mx-2 hover:transform hover:scale-105"
             >
               <svg
@@ -138,7 +141,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Nav Links */}
+          {/* Simplified Nav Links */}
           <div className="hidden lg:flex items-center gap-8 font-medium">
             <Link
               to="/"
@@ -149,17 +152,6 @@ export default function Navbar() {
               }`}
             >
               Home
-            </Link>
-
-            <Link
-              to="/admin"
-              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
-                location.pathname.startsWith("/admin")
-                  ? "text-violet-600 font-semibold bg-violet-50"
-                  : "text-gray-700 hover:text-violet-600 hover:bg-violet-50"
-              }`}
-            >
-              Admin Panel
             </Link>
 
             <NavDropdown
@@ -224,10 +216,10 @@ export default function Navbar() {
           {/* Account & Login */}
           <div className="flex items-center gap-4">
             {/* Account Dropdown */}
-            {isLoggedIn && (
+            {isAuthenticated && (
               <div className="hidden lg:block">
                 <NavDropdown
-                  label="My Account"
+                  label={user?.fullName || "My Account"}
                   items={accountItems}
                   hasLogout={true}
                   alignRight={true}
@@ -251,7 +243,7 @@ export default function Navbar() {
             )}
 
             {/* Login Button */}
-            {!isLoggedIn && (
+            {!isAuthenticated && (
               <button
                 onClick={() => setShowLogin(true)}
                 className="px-6 py-2.5 rounded-xl font-semibold transition-all duration-200 bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white text-sm flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105"

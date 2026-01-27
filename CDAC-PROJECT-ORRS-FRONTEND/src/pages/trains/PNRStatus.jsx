@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 export default function PNRStatus() {
+  const navigate = useNavigate();
   const [pnr, setPnr] = useState("");
   const [status, setStatus] = useState(null);
 
@@ -29,7 +32,7 @@ export default function PNRStatus() {
     <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
-        <div className="mb-12">
+        <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Check PNR Status
           </h1>
@@ -201,7 +204,9 @@ export default function PNRStatus() {
 
         {!status && (
           <div className="max-w-4xl mx-auto text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
+            <div className="w-24 h-24 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MagnifyingGlassIcon className="w-12 h-12 text-violet-600" />
+            </div>
             <p className="text-gray-600 text-lg">
               Enter your PNR number above to check your booking status
             </p>

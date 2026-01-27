@@ -187,24 +187,6 @@ export default function Feedback() {
             )}
           </Formik>
         </div>
-
-        {/* Feedback Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {[
-            { label: "Total Feedback", value: "2,450", icon: "💬" },
-            { label: "Average Rating", value: "4.7/5", icon: "⭐" },
-            { label: "Response Time", value: "48 hours", icon: "⏱️" },
-          ].map((stat, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-2xl shadow-lg shadow-violet-200 p-6 text-center"
-            >
-              <div className="text-4xl mb-3">{stat.icon}</div>
-              <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-              <p className="text-2xl font-bold text-violet-600">{stat.value}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

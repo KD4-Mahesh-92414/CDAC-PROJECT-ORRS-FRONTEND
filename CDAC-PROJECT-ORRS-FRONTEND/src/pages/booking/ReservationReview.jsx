@@ -1,11 +1,10 @@
-import { useContext, useEffect } from "react";
-import { useNavigate } from "react-router";
-import { BookingContext } from "../../contexts/BookingContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function ReservationReview() {
   const navigate = useNavigate();
-  const { selectedTrain, selectedSeats, passengers, fareData } =
-    useContext(BookingContext);
+  const { selectedTrain, selectedSeats, passengers, fareData } = useSelector((state) => state.booking);
 
   useEffect(() => {
     if (

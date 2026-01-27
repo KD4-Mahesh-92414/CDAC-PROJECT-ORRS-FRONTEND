@@ -1,81 +1,30 @@
-import { useState, useRef, useEffect, useContext } from "react";
-import { useNavigate } from "react-router";
-import {
-  ArrowsRightLeftIcon,
-  CalendarDaysIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/outline";
-import { BookingContext } from "../../contexts/BookingContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { ArrowsRightLeftIcon } from "@heroicons/react/24/outline";
+import { searchStart, searchSuccess, searchFailure } from "../../store/slices/trainSlice";
+import { setSearchData } from "../../store/slices/bookingSlice";
+import Calendar from "../ui/Calendar";
 import Modal from "../common/Modal";
 import { Login } from "../../pages/auth/Login";
 import toast from "react-hot-toast";
 
+/**
+ * SearchTrain Component
+ * Responsibility: Handle train search form UI, validation, and navigation
+ */
 export default function SearchTrain() {
   const navigate = useNavigate();
-  const { setSearchData } = useContext(BookingContext);
-  const { isLoggedIn } = useAuth();
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isLoading } = useSelector((state) => state.trains);
+  
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [date, setDate] = useState("");
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [isSwapping, setIsSwapping] = useState(false);
   const [errors, setErrors] = useState({});
   const [showLogin, setShowLogin] = useState(false);
-  const calendarRef = useRef(null);
-
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
-
-  const formatDateDisplay = (dateString) => {
-    if (!dateString) return "dd/mm/yyyy";
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  const getDaysInMonth = (month, year) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
-  const getFirstDayOfMonth = (month, year) => {
-    return new Date(year, month, 1).getDay();
-  };
-
-  const isDateDisabled = (day, month, year) => {
-    const date = new Date(year, month, day);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
-  };
-
-  const handleDateSelect = (day) => {
-    const selectedDate = new Date(currentYear, currentMonth, day);
-    // Ensure we get the correct date in local timezone
-    const year = selectedDate.getFullYear();
-    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const dayStr = String(selectedDate.getDate()).padStart(2, "0");
-    const dateString = `${year}-${month}-${dayStr}`;
-    setDate(dateString);
-    setShowCalendar(false);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-        setShowCalendar(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleSwap = () => {
     setIsSwapping(true);
@@ -87,9 +36,14 @@ export default function SearchTrain() {
     }, 150);
   };
 
-  const handleSearch = () => {
+  const handleDateChange = (selectedDate) => {
+    setDate(selectedDate);
+  };
+
+  const handleSearch = async () => {
     const newErrors = {};
 
+    // Validation
     if (!from.trim()) {
       newErrors.from = "Please enter departure station";
     }
@@ -106,19 +60,128 @@ export default function SearchTrain() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      if (!isLoggedIn) {
+      if (!isAuthenticated) {
         toast.error("Please login to search trains");
         setShowLogin(true);
         return;
       }
 
-      toast.success("Searching trains...");
-      setSearchData({
-        from: from.trim(),
-        to: to.trim(),
-        date: date,
-      });
-      navigate("/trains");
+      try {
+        dispatch(searchStart());
+        
+        const searchParams = {
+          from: from.trim(),
+          to: to.trim(),
+          date: date,
+        };
+
+        // Update both slices for compatibility
+        dispatch(setSearchData(searchParams));
+
+        // TEMPORARY: Using mock data instead of backend call
+        const mockTrainResults = [
+          {
+            id: 1,
+            trainNumber: "12025",
+            trainName: "Rajdhani Express",
+            number: "12025",
+            name: "Rajdhani Express",
+            from: searchParams.from,
+            to: searchParams.to,
+            departure: "06:00",
+            arrival: "14:30",
+            departureTime: "06:00",
+            arrivalTime: "14:30",
+            duration: "8h 30m",
+            departureDate: searchParams.date,
+            arrivalDate: searchParams.date,
+            departureStation: searchParams.from,
+            arrivalStation: searchParams.to,
+            daysOfRun: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            classes: [
+              { name: "AC First Class", price: 3500, available: 12 },
+              { name: "AC 2-Tier", price: 2200, available: 45 },
+              { name: "AC 3-Tier", price: 1650, available: 78 },
+            ],
+            coaches: [
+              { type: "AC First Class", fare: 3500, available: 12 },
+              { type: "AC 2nd Tier", fare: 2200, available: 45 },
+              { type: "AC 3rd Tier", fare: 1650, available: 78 },
+            ]
+          },
+          {
+            id: 2,
+            trainNumber: "12345",
+            trainName: "Shatabdi Express",
+            number: "12345",
+            name: "Shatabdi Express",
+            from: searchParams.from,
+            to: searchParams.to,
+            departure: "07:15",
+            arrival: "15:45",
+            departureTime: "07:15",
+            arrivalTime: "15:45",
+            duration: "8h 30m",
+            departureDate: searchParams.date,
+            arrivalDate: searchParams.date,
+            departureStation: searchParams.from,
+            arrivalStation: searchParams.to,
+            daysOfRun: ["Mon", "Wed", "Fri", "Sun"],
+            classes: [
+              { name: "Chair Car", price: 850, available: 32 },
+              { name: "Executive Chair", price: 1200, available: 18 },
+            ],
+            coaches: [
+              { type: "AC Chair Car", fare: 850, available: 32 },
+              { type: "Executive Chair", fare: 1200, available: 18 },
+            ]
+          },
+          {
+            id: 3,
+            trainNumber: "12987",
+            trainName: "Deccan Express",
+            number: "12987",
+            name: "Deccan Express",
+            from: searchParams.from,
+            to: searchParams.to,
+            departure: "22:30",
+            arrival: "06:15",
+            departureTime: "22:30",
+            arrivalTime: "06:15",
+            duration: "7h 45m",
+            departureDate: searchParams.date,
+            arrivalDate: searchParams.date,
+            departureStation: searchParams.from,
+            arrivalStation: searchParams.to,
+            daysOfRun: ["Tue", "Thu", "Sat"],
+            classes: [
+              { name: "Sleeper", price: 450, available: 95 },
+              { name: "AC 3-Tier", price: 1200, available: 56 },
+              { name: "AC 2-Tier", price: 1800, available: 23 },
+            ],
+            coaches: [
+              { type: "Sleeper Class", fare: 450, available: 95 },
+              { type: "AC 3rd Tier", fare: 1200, available: 56 },
+              { type: "AC 2nd Tier", fare: 1800, available: 23 },
+            ]
+          }
+        ];
+
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        dispatch(searchSuccess({
+          results: mockTrainResults,
+          params: searchParams
+        }));
+
+        toast.success("Trains found successfully!");
+        navigate("/trains");
+      } catch (error) {
+        const errorMessage = error.message || "Failed to search trains";
+        dispatch(searchFailure(errorMessage));
+        toast.error(errorMessage);
+      }
     } else {
       toast.error("Please fill all required fields correctly");
     }
@@ -127,12 +190,7 @@ export default function SearchTrain() {
   const handleLoginSuccess = () => {
     setShowLogin(false);
     // After login, proceed with search
-    setSearchData({
-      from: from.trim(),
-      to: to.trim(),
-      date: date,
-    });
-    navigate("/trains");
+    handleSearch();
   };
 
   return (
@@ -173,119 +231,18 @@ export default function SearchTrain() {
               </button>
             </div>
 
-            <div className="w-full md:w-[140px] h-[80px] flex items-center justify-center">
-              <div
-                className="w-[140px] h-[46px] bg-gradient-to-r from-white to-violet-50 rounded-xl border-2 border-violet-600 flex items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:border-violet-700 relative cursor-pointer px-2"
-                onClick={() => setShowCalendar(!showCalendar)}
-                ref={calendarRef}
-              >
-                <CalendarDaysIcon className="w-4 h-4 text-violet-500 flex-shrink-0" />
-                <span className="text-black text-sm font-medium">
-                  {date ? formatDateDisplay(date) : "dd/mm/yyyy"}
-                </span>
-
-                {showCalendar && (
-                  <div className="absolute bottom-full left-0 mb-2 bg-white rounded-2xl shadow-2xl shadow-violet-300/50 border-2 border-violet-200 p-4 z-[100] w-72">
-                    <div className="flex items-center justify-between mb-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (currentMonth === 0) {
-                            setCurrentMonth(11);
-                            setCurrentYear(currentYear - 1);
-                          } else {
-                            setCurrentMonth(currentMonth - 1);
-                          }
-                        }}
-                        className="p-1 rounded-lg hover:bg-violet-100 text-violet-600"
-                      >
-                        <ChevronLeftIcon className="w-5 h-5" />
-                      </button>
-                      <h3 className="text-violet-700 font-semibold">
-                        {new Date(currentYear, currentMonth).toLocaleDateString(
-                          "en-US",
-                          { month: "long", year: "numeric" }
-                        )}
-                      </h3>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (currentMonth === 11) {
-                            setCurrentMonth(0);
-                            setCurrentYear(currentYear + 1);
-                          } else {
-                            setCurrentMonth(currentMonth + 1);
-                          }
-                        }}
-                        className="p-1 rounded-lg hover:bg-violet-100 text-violet-600"
-                      >
-                        <ChevronRightIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1 mb-2">
-                      {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                        <div
-                          key={day}
-                          className="text-center text-xs font-medium text-violet-500 py-2"
-                        >
-                          {day}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1">
-                      {Array.from({
-                        length: getFirstDayOfMonth(currentMonth, currentYear),
-                      }).map((_, index) => (
-                        <div key={`empty-${index}`} className="h-8"></div>
-                      ))}
-
-                      {Array.from({
-                        length: getDaysInMonth(currentMonth, currentYear),
-                      }).map((_, index) => {
-                        const day = index + 1;
-                        const isDisabled = isDateDisabled(
-                          day,
-                          currentMonth,
-                          currentYear
-                        );
-                        const isSelected =
-                          date &&
-                          new Date(date).getDate() === day &&
-                          new Date(date).getMonth() === currentMonth &&
-                          new Date(date).getFullYear() === currentYear;
-
-                        return (
-                          <button
-                            key={day}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!isDisabled) handleDateSelect(day);
-                            }}
-                            disabled={isDisabled}
-                            className={`h-8 w-8 rounded-lg text-sm font-medium transition-all ${
-                              isSelected
-                                ? "bg-violet-600 text-white shadow-lg"
-                                : isDisabled
-                                ? "text-gray-300 cursor-not-allowed"
-                                : "text-black hover:bg-violet-100 hover:scale-110"
-                            }`}
-                          >
-                            {day}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Calendar Component */}
+            <Calendar 
+              selectedDate={date}
+              onDateChange={handleDateChange}
+              placeholder="dd/mm/yyyy"
+            />
           </div>
 
           <button
             onClick={handleSearch}
-            className="absolute right-9 -bottom-5 w-[120px] h-[46px] rounded-xl text-white font-semibold bg-gradient-to-r from-violet-600 to-violet-700 shadow-xl shadow-violet-400/40 hover:from-violet-700 hover:to-violet-800 hover:border-violet-700 hover:shadow-2xl hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 active:scale-95"
+            disabled={isLoading}
+            className="absolute right-9 -bottom-5 w-[120px] h-[46px] rounded-xl text-white font-semibold bg-gradient-to-r from-violet-600 to-violet-700 shadow-xl shadow-violet-400/40 hover:from-violet-700 hover:to-violet-800 hover:border-violet-700 hover:shadow-2xl hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="flex items-center justify-center gap-2">
               <svg
@@ -301,7 +258,7 @@ export default function SearchTrain() {
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              Search
+              {isLoading ? "Searching..." : "Search"}
             </span>
           </button>
         </div>

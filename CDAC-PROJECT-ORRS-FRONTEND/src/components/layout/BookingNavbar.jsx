@@ -1,13 +1,19 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../store/slices/authSlice";
 import train from "../../assets/train.png";
-import { useAuth } from "../../contexts/AuthContext";
 
 export default function BookingNavbar() {
-  const { isLoggedIn, logout } = useAuth();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -62,7 +68,7 @@ export default function BookingNavbar() {
           <>
             <div className="border-t border-violet-200 my-2 mx-3"></div>
             <button
-              onClick={() => logout()}
+              onClick={handleLogout}
               className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 font-medium flex items-center gap-2 text-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +126,7 @@ export default function BookingNavbar() {
           />
 
           {/* Account Dropdown */}
-          {isLoggedIn && (
+          {isAuthenticated && (
             <NavDropdown 
               label="My Account" 
               items={accountItems} 
@@ -195,7 +201,7 @@ export default function BookingNavbar() {
             </div>
             
             {/* Mobile Account Menu */}
-            {isLoggedIn && (
+            {isAuthenticated && (
               <div className="space-y-2 border-t border-white/20 pt-3">
                 <p className="text-white/70 text-xs font-semibold uppercase tracking-wide px-3">My Account</p>
                 {accountItems.map((item) => (
@@ -210,7 +216,7 @@ export default function BookingNavbar() {
                 ))}
                 <button
                   onClick={() => {
-                    logout();
+                    handleLogout();
                     setMobileMenuOpen(false);
                   }}
                   className="w-full text-left px-3 py-2 text-red-300 hover:text-red-200 hover:bg-red-500/20 rounded-lg transition-all text-sm font-medium"

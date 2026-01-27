@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 export default function CancelledTrains() {
+  const navigate = useNavigate();
   const cancelledTrains = [
     {
       id: 1,
@@ -36,7 +39,7 @@ export default function CancelledTrains() {
     <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
-        <div className="mb-12">
+        <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Cancelled / Rescheduled Trains
           </h1>
@@ -45,20 +48,6 @@ export default function CancelledTrains() {
           </p>
         </div>
 
-        {/* Info Banner */}
-        <div className="bg-amber-50 border-l-4 border-amber-500 rounded-xl p-6 mb-8">
-          <div className="flex items-start gap-4">
-            <div className="text-2xl">⚠️</div>
-            <div>
-              <h4 className="font-bold text-gray-900 mb-1">Important Notice</h4>
-              <p className="text-sm text-gray-600">
-                If your train has been cancelled, you are eligible for a full
-                refund or rebooking on any available train without additional
-                charges. Refunds are processed within 5-7 business days.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Cancelled Trains Table */}
         <div className="bg-white rounded-2xl shadow-lg shadow-violet-200 overflow-hidden">
@@ -125,47 +114,7 @@ export default function CancelledTrains() {
           </div>
         </div>
 
-        {/* FAQs Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                question: "How long does refund processing take?",
-                answer:
-                  "Refunds are typically processed within 5-7 business days from the date of cancellation.",
-              },
-              {
-                question:
-                  "Can I rebook on another train without extra charges?",
-                answer:
-                  "Yes, you can rebook on any available train of your choice without paying any additional amount.",
-              },
-              {
-                question: "Will I get a refund for my meal voucher?",
-                answer:
-                  "Yes, meal vouchers are refundable if you had booked any train with meal service.",
-              },
-              {
-                question: "How will I receive my refund?",
-                answer:
-                  "Refunds will be credited to your original payment method (credit card, debit card, or net banking account).",
-              },
-            ].map((faq, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-xl shadow-md shadow-violet-100 p-6"
-              >
-                <h4 className="font-bold text-gray-900 mb-2">
-                  Q: {faq.question}
-                </h4>
-                <p className="text-gray-600 text-sm">A: {faq.answer}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+
 
         {/* Contact Support */}
         <div className="mt-12 bg-gradient-to-r from-violet-600 to-violet-700 rounded-2xl shadow-lg shadow-violet-300 p-8 text-white text-center">
@@ -174,7 +123,10 @@ export default function CancelledTrains() {
             Contact our customer support team for any queries regarding
             cancellations and refunds
           </p>
-          <button className="bg-white text-violet-600 font-bold px-8 py-3 rounded-xl hover:bg-gray-100 transition-colors">
+          <button 
+            onClick={() => navigate('/contact/support')}
+            className="bg-white text-violet-600 font-bold px-8 py-3 rounded-xl hover:bg-gray-100 transition-colors"
+          >
             Contact Support
           </button>
         </div>

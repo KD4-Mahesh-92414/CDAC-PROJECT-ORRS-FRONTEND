@@ -1,13 +1,14 @@
-import { useLocation } from "react-router";
-import { useContext } from "react";
+import { useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import BookingNavbar from "./BookingNavbar";
 import HeaderSearchBar from "./HeaderSearchBar";
 import JourneySteps from "./JourneySteps";
-import { BookingContext } from "../../contexts/BookingContext";
+import { setSearchData } from "../../store/slices/bookingSlice";
 
 export default function HeaderLayout() {
   const location = useLocation();
-  const { searchData, setSearchData } = useContext(BookingContext);
+  const dispatch = useDispatch();
+  const { searchData } = useSelector((state) => state.booking);
 
   const getCurrentStep = () => {
     const path = location.pathname;
@@ -28,7 +29,7 @@ export default function HeaderLayout() {
         {/* Search Bar */}
         <HeaderSearchBar 
           searchData={searchData}
-          setSearchData={setSearchData}
+          setSearchData={(data) => dispatch(setSearchData(data))}
         />
       </div>
       

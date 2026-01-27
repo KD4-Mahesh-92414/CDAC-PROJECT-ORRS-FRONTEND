@@ -1,12 +1,13 @@
-import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
-import { BookingContext } from "../../contexts/BookingContext";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { resetBooking } from "../../store/slices/bookingSlice";
 import toast from "react-hot-toast";
 
 export default function Payment() {
   const navigate = useNavigate();
-  const { selectedTrain, passengers, resetBooking, fareData } =
-    useContext(BookingContext);
+  const dispatch = useDispatch();
+  const { selectedTrain, passengers, fareData } = useSelector((state) => state.booking);
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("UPI");
 
@@ -26,7 +27,7 @@ export default function Payment() {
     setTimeout(() => {
       const bookingRef = `BR${Date.now().toString().slice(-8).toUpperCase()}`;
       toast.success(`Payment successful! Booking ID: ${bookingRef}`, { id: "payment" });
-      resetBooking();
+      dispatch(resetBooking());
       navigate("/confirmation", { state: { bookingRef, totalFare } });
     }, 2000);
   };

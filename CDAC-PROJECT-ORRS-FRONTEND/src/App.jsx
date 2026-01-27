@@ -1,33 +1,39 @@
-import { Routes, Route, useLocation } from "react-router";
-import { Suspense, lazy } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
+import { Provider, useDispatch } from "react-redux";
 
-// Context Providers
-import { StationProvider } from "./admin/context/StationContext";
-import { TrainProvider } from "./admin/context/TrainContext";
+// Redux Store
+import store from "./store";
+import { initializeAuth } from "./store/slices/authSlice";
 
-// Main Pages
-import HomePage from "./pages/HomePage";
-import { Login } from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
+// Protected Route Guard
+import ProtectedRoute from "./components/guards/ProtectedRoute";
+
+// Non-lazy components (critical for initial load)
 import HeaderLayout from "./components/layout/HeaderLayout";
 import Navbar from "./components/layout/Navbar";
 
+// Lazy load ALL page components for better performance
+const HomePage = lazy(() => import("./pages/HomePage"));
+const Login = lazy(() => import("./pages/auth/Login").then(module => ({ default: module.Login })));
+const Register = lazy(() => import("./pages/auth/Register"));
+
 // Admin Pages
-import Dashboard from "./admin/pages/Dashboard";
-import StationManagement from "./admin/pages/StationManagement";
-import TrainManagement from "./admin/pages/TrainManagement";
-import UserManagement from "./admin/pages/UserManagement";
-import FareStructure from "./admin/pages/FareStructure";
-import RefundTransaction from "./admin/pages/RefundTransaction";
-import CreateAnnouncement from "./admin/pages/CreateAnnouncement";
+const Dashboard = lazy(() => import("./admin/pages/Dashboard"));
+const StationManagement = lazy(() => import("./admin/pages/StationManagement"));
+const TrainManagement = lazy(() => import("./admin/pages/TrainManagement"));
+const UserManagement = lazy(() => import("./admin/pages/UserManagement"));
+const FareStructure = lazy(() => import("./admin/pages/FareStructure"));
+const RefundTransaction = lazy(() => import("./admin/pages/RefundTransaction"));
+const CreateAnnouncement = lazy(() => import("./admin/pages/CreateAnnouncement"));
 
 // Booking Flow Pages
-import TrainSearchResults from "./pages/booking/TrainSearchResults";
-import NewSeatSelection from "./pages/booking/NewSeatSelection";
-import PassengerDetails from "./pages/booking/PassengerDetails";
-import ReservationReview from "./pages/booking/ReservationReview";
-import Payment from "./pages/booking/Payment";
-import BookingConfirmation from "./pages/booking/Confirmation";
+const TrainSearchResults = lazy(() => import("./pages/booking/TrainSearchResults"));
+const NewSeatSelection = lazy(() => import("./pages/booking/NewSeatSelection"));
+const PassengerDetails = lazy(() => import("./pages/booking/PassengerDetails"));
+const ReservationReview = lazy(() => import("./pages/booking/ReservationReview"));
+const Payment = lazy(() => import("./pages/booking/Payment"));
+const BookingConfirmation = lazy(() => import("./pages/booking/Confirmation"));
 
 // Lazy load all other pages
 const GroupBooking = lazy(() => import("./pages/trains/GroupBooking"));
@@ -36,9 +42,7 @@ const LiveTrainStatus = lazy(() => import("./pages/trains/LiveTrainStatus"));
 const CancelledTrains = lazy(() => import("./pages/trains/CancelledTrains"));
 
 const HowToBook = lazy(() => import("./pages/help/HowToBook"));
-const CancellationRefund = lazy(() =>
-  import("./pages/help/CancellationRefund")
-);
+const CancellationRefund = lazy(() => import("./pages/help/CancellationRefund"));
 const TatkalRules = lazy(() => import("./pages/help/TatkalRules"));
 const TravelGuidelines = lazy(() => import("./pages/help/TravelGuidelines"));
 const FAQs = lazy(() => import("./pages/help/FAQs"));
@@ -52,21 +56,31 @@ const SavedPassengers = lazy(() => import("./pages/account/SavedPassengers"));
 
 const CustomerSupport = lazy(() => import("./pages/contact/CustomerSupport"));
 const Feedback = lazy(() => import("./pages/contact/Feedback"));
-const EmergencyHelpline = lazy(() =>
-  import("./pages/contact/EmergencyHelpline")
-);
+const EmergencyHelpline = lazy(() => import("./pages/contact/EmergencyHelpline"));
 
-// Loading Fallback Component
+/**
+ * Loading Fallback Component
+ * Responsibility: Show loading state during lazy component loading
+ */
 function LoadingFallback() {
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="text-violet-600 text-lg">Loading...</div>
+      <div className="flex flex-col items-center gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
+        <div className="text-violet-600 text-lg">Loading page...</div>
+      </div>
     </div>
   );
 }
 
 function AppContent() {
   const location = useLocation();
+  const dispatch = useDispatch();
+  
+  // Initialize auth state from localStorage on app start
+  useEffect(() => {
+    dispatch(initializeAuth());
+  }, [dispatch]);
   
   // Booking flow pages that need HeaderLayout with search bar
   const bookingFlowPages = ['/trains', '/seats', '/passengers', '/review', '/payment'];
@@ -89,62 +103,230 @@ function AppContent() {
       
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          {/* Home */}
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Booking Flow Routes */}
-          <Route path="/trains" element={<TrainSearchResults />} />
-          <Route path="/seats" element={<NewSeatSelection />} />
-          <Route path="/passengers" element={<PassengerDetails />} />
-          <Route path="/review" element={<ReservationReview />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/confirmation" element={<BookingConfirmation />} />
-
-          {/* Other Train Routes */}
-          <Route path="/trains/group-booking" element={<GroupBooking />} />
+          {/* Public Train Routes */}
           <Route path="/trains/pnr-status" element={<PNRStatus />} />
-          <Route path="/trains/live-status" element={<LiveTrainStatus />} />
           <Route path="/trains/cancelled" element={<CancelledTrains />} />
 
-          {/* Help & Booking Guide Routes */}
+          {/* Public Help Routes */}
           <Route path="/help/how-to-book" element={<HowToBook />} />
-          <Route
-            path="/help/cancellation-refund"
-            element={<CancellationRefund />}
-          />
-          <Route path="/help/tatkal-rules" element={<TatkalRules />} />
-          <Route
-            path="/help/travel-guidelines"
-            element={<TravelGuidelines />}
-          />
           <Route path="/help/faqs" element={<FAQs />} />
 
-          {/* Account Routes */}
-          <Route path="/account/profile" element={<Profile />} />
-          <Route path="/account/edit-profile" element={<EditProfile />} />
-          <Route path="/account/change-password" element={<ChangePassword />} />
-          <Route path="/account/bookings" element={<Bookings />} />
-          <Route path="/account/payments" element={<PaymentHistory />} />
-          <Route
-            path="/account/saved-passengers"
-            element={<SavedPassengers />}
-          />
-
-          {/* Contact Routes */}
+          {/* Public Contact Routes */}
           <Route path="/contact/support" element={<CustomerSupport />} />
           <Route path="/contact/feedback" element={<Feedback />} />
-          <Route path="/contact/emergency" element={<EmergencyHelpline />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/stations" element={<StationManagement />} />
-          <Route path="/admin/trains" element={<TrainManagement />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/fares" element={<FareStructure />} />
-          <Route path="/admin/refunds" element={<RefundTransaction />} />
-          <Route path="/admin/announcements" element={<CreateAnnouncement />} />
+          {/* Protected Booking Flow Routes */}
+          <Route 
+            path="/trains" 
+            element={
+              <ProtectedRoute>
+                <TrainSearchResults />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/seats" 
+            element={
+              <ProtectedRoute>
+                <NewSeatSelection />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/passengers" 
+            element={
+              <ProtectedRoute>
+                <PassengerDetails />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/review" 
+            element={
+              <ProtectedRoute>
+                <ReservationReview />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/payment" 
+            element={
+              <ProtectedRoute>
+                <Payment />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/confirmation" 
+            element={
+              <ProtectedRoute>
+                <BookingConfirmation />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Protected Account Routes */}
+          <Route 
+            path="/account/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/account/edit-profile" 
+            element={
+              <ProtectedRoute>
+                <EditProfile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/account/change-password" 
+            element={
+              <ProtectedRoute>
+                <ChangePassword />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/account/bookings" 
+            element={
+              <ProtectedRoute>
+                <Bookings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/account/payments" 
+            element={
+              <ProtectedRoute>
+                <PaymentHistory />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/account/saved-passengers" 
+            element={
+              <ProtectedRoute>
+                <SavedPassengers />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Protected Admin Routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/stations" 
+            element={
+              <ProtectedRoute>
+                <StationManagement />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/trains" 
+            element={
+              <ProtectedRoute>
+                <TrainManagement />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/users" 
+            element={
+              <ProtectedRoute>
+                <UserManagement />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/fares" 
+            element={
+              <ProtectedRoute>
+                <FareStructure />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/refunds" 
+            element={
+              <ProtectedRoute>
+                <RefundTransaction />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/announcements" 
+            element={
+              <ProtectedRoute>
+                <CreateAnnouncement />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Other Protected Routes */}
+          <Route 
+            path="/trains/group-booking" 
+            element={
+              <ProtectedRoute>
+                <GroupBooking />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/trains/live-status" 
+            element={
+              <ProtectedRoute>
+                <LiveTrainStatus />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/help/cancellation-refund" 
+            element={
+              <ProtectedRoute>
+                <CancellationRefund />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/help/tatkal-rules" 
+            element={
+              <ProtectedRoute>
+                <TatkalRules />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/help/travel-guidelines" 
+            element={
+              <ProtectedRoute>
+                <TravelGuidelines />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/contact/emergency" 
+            element={
+              <ProtectedRoute>
+                <EmergencyHelpline />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </Suspense>
     </>
@@ -153,11 +335,11 @@ function AppContent() {
 
 function App() {
   return (
-    <StationProvider>
-      <TrainProvider>
+    <Provider store={store}>
+      <BrowserRouter>
         <AppContent />
-      </TrainProvider>
-    </StationProvider>
+      </BrowserRouter>
+    </Provider>
   );
 }
 

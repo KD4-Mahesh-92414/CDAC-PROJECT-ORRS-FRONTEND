@@ -34,18 +34,20 @@
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { FloatingInput } from "../../components/forms/FloatingInput";
 import { EnvelopeIcon, LockClosedIcon } from "@heroicons/react/24/outline";
-import { useAuth } from "../../contexts/AuthContext";
+import { loginStart, loginSuccess, loginFailure, clearError } from "../../store/slices/authSlice";
+import authService from "../../services/authService";
 import toast from "react-hot-toast";
 import Modal from "../../components/common/Modal";
 import Register from "./Register";
 
 export const Login = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
-  const { login, setIsLoggedIn, setUser } = useAuth();
-  const [globalError, setGlobalError] = useState("");
+  const dispatch = useDispatch();
+  const { isLoading, error } = useSelector((state) => state.auth);
   const [showRegister, setShowRegister] = useState(false);
 
   const validationSchema = Yup.object({
@@ -68,19 +70,51 @@ export const Login = ({ onLoginSuccess }) => {
       .required("Password is required"),
   });
 
-  const handleSubmit = (values) => {
-    const result = login(values.email, values.password);
-    if (result.success) {
-      setIsLoggedIn(true);
-      const user = { email: values.email };
-      setUser(user);
-      setGlobalError("");
-      toast.success("Login successful! Welcome back.");
+  const handleSubmit = async (values) => {
+    try {
+      dispatch(loginStart());
+      dispatch(clearError());
+      
+      console.log('Login attempt:', { email: values.email });
+      
+      const response = await authService.login({
+        email: values.email,
+        password: values.password,
+      });
+
+      console.log('Login response from backend:', response);
+
+      // Backend returns { jwt, message }
+      const { jwt, message } = response;
+      
+      if (!jwt) {
+        throw new Error('No JWT token received from server');
+      }
+
+      // Store JWT token in localStorage
+      localStorage.setItem('token', jwt);
+      
+      // Create basic user object with email
+      const user = {
+        email: values.email,
+      };
+
+      console.log('JWT token stored in localStorage');
+      console.log('Token preview:', `${jwt.substring(0, 30)}...`);
+
+      dispatch(loginSuccess({
+        user: user,
+        token: jwt,
+      }));
+
+      toast.success(message || "Login successful! Welcome back.");
       onLoginSuccess?.();
       setTimeout(() => navigate("/"), 500);
-    } else {
-      toast.error(result.message);
-      setGlobalError(result.message);
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = error.message || "Login failed. Please try again.";
+      dispatch(loginFailure(errorMessage));
+      toast.error(errorMessage);
     }
   };
 
@@ -100,9 +134,9 @@ export const Login = ({ onLoginSuccess }) => {
             Welcome back to Railway Reservation
           </p>
 
-          {globalError && (
+          {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-              {globalError}
+              {error}
             </div>
           )}
 
@@ -123,9 +157,10 @@ export const Login = ({ onLoginSuccess }) => {
 
           <button
             type="submit"
-            className="w-full mt-6 bg-violet-600 text-white py-3 rounded-lg hover:bg-violet-700 transition font-semibold"
+            disabled={isLoading}
+            className="w-full mt-6 bg-violet-600 text-white py-3 rounded-lg hover:bg-violet-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </button>
 
           {/* Register Link */}

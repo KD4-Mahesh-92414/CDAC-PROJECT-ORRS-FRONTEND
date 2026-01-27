@@ -1,13 +1,14 @@
-import { useLocation } from "react-router";
-import { useContext } from "react";
+import { useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import Navbar from "../components/Navbar";
 import SearchBar from "../AfterSearch/Components/SearchBar";
 import JourneySteps from "../AfterSearch/Components/JourneySteps";
-import { BookingContext } from "../contexts/BookingContext";
+import { setSearchData } from "../store/slices/bookingSlice";
 
 export default function HeaderLayout() {
   const location = useLocation();
-  const { searchData, setSearchData } = useContext(BookingContext);
+  const dispatch = useDispatch();
+  const { searchData } = useSelector((state) => state.booking);
 
   const hideSearchBar = ["/login", "/register", "/confirmation", "/"].includes(
     location.pathname
@@ -38,7 +39,7 @@ export default function HeaderLayout() {
       <Navbar />
       {!hideSearchBar && (
         <div className="border-t border-violet-100">
-          <SearchBar searchData={searchData} setSearchData={setSearchData} />
+          <SearchBar searchData={searchData} setSearchData={(data) => dispatch(setSearchData(data))} />
         </div>
       )}
       {!hideJourneySteps && (

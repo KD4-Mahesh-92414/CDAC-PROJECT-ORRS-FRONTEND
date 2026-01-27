@@ -1,7 +1,8 @@
 import { Form, Formik } from "formik";
 import * as Yup from "yup";
 import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   UserIcon,
   EnvelopeIcon,
@@ -9,13 +10,14 @@ import {
   PhoneIcon,
 } from "@heroicons/react/24/outline";
 import { FloatingInput } from "../../components/forms/FloatingInput";
-import { useAuth } from "../../contexts/AuthContext";
+import { loginStart, loginSuccess, loginFailure, clearError } from "../../store/slices/authSlice";
+import authService from "../../services/authService";
 import toast from "react-hot-toast";
 
 const Register = ({ onRegisterSuccess }) => {
   const navigate = useNavigate();
-  const { register, setIsLoggedIn, setUser } = useAuth();
-  const [globalError, setGlobalError] = useState("");
+  const dispatch = useDispatch();
+  const { isLoading, error } = useSelector((state) => state.auth);
   const [successMessage, setSuccessMessage] = useState("");
 
   const validationSchema = Yup.object().shape({
@@ -38,27 +40,30 @@ const Register = ({ onRegisterSuccess }) => {
       .required("Mobile number is required"),
   });
 
-  const handleSubmit = (values) => {
-    setGlobalError("");
-    setSuccessMessage("");
+  const handleSubmit = async (values) => {
+    try {
+      dispatch(loginStart()); // Using loginStart for loading state
+      dispatch(clearError());
+      setSuccessMessage("");
 
-    const result = register(
-      values.fullName,
-      values.email,
-      values.password,
-      values.confirmPassword,
-      values.mobile
-    );
+      await authService.register({
+        fullName: values.fullName,
+        email: values.email,
+        password: values.password,
+        cnfPassword: values.confirmPassword,
+        mobile: values.mobile,
+      });
 
-    if (result.success) {
       toast.success("Registration successful! Please login to continue.");
-      setSuccessMessage(result.message);
+      setSuccessMessage("Registration successful! Please login to continue.");
+      
       setTimeout(() => {
         onRegisterSuccess?.();
       }, 1500);
-    } else {
-      toast.error(result.message);
-      setGlobalError(result.message);
+    } catch (error) {
+      const errorMessage = error.message || "Registration failed. Please try again.";
+      dispatch(loginFailure(errorMessage));
+      toast.error(errorMessage);
     }
   };
 
@@ -82,9 +87,9 @@ const Register = ({ onRegisterSuccess }) => {
           Create your Railway Reservation account
         </p>
 
-        {globalError && (
+        {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-            {globalError}
+            {error}
           </div>
         )}
 
@@ -131,9 +136,10 @@ const Register = ({ onRegisterSuccess }) => {
         />
         <button
           type="submit"
-          className="w-full mt-6 bg-violet-600 text-white py-3 rounded-lg hover:bg-violet-700 transition font-semibold"
+          disabled={isLoading}
+          className="w-full mt-6 bg-violet-600 text-white py-3 rounded-lg hover:bg-violet-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Register
+          {isLoading ? "Registering..." : "Register"}
         </button>
 
         {/* Login Link */}

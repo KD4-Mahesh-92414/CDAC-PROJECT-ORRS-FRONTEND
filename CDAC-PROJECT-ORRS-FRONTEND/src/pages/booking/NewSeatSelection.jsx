@@ -1,6 +1,7 @@
-import { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router";
-import { BookingContext } from "../../contexts/BookingContext";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { setSelectedSeats, setFareData } from "../../store/slices/bookingSlice";
 import toast from "react-hot-toast";
 
 // Journey Info Card Component
@@ -365,7 +366,8 @@ const FareSummary = ({ seatCount, farePerSeat, onProceed }) => {
 // Main Component
 const NewSeatSelection = () => {
   const navigate = useNavigate();
-  const { selectedTrain, selectedSeats, setSelectedSeats, setFareData } = useContext(BookingContext);
+  const dispatch = useDispatch();
+  const { selectedTrain, selectedSeats } = useSelector((state) => state.booking);
   const [mode, setMode] = useState("manual");
   const [selectedCoach, setSelectedCoach] = useState("H1");
 
@@ -388,15 +390,15 @@ const NewSeatSelection = () => {
 
   // Reset seats when coach changes
   useEffect(() => {
-    setSelectedSeats([]);
-  }, [selectedCoach, setSelectedSeats]);
+    dispatch(setSelectedSeats([]));
+  }, [selectedCoach, dispatch]);
 
   // Auto-seat logic
   useEffect(() => {
     if (mode === "auto") {
-      setSelectedSeats([1, 2, 3]);
+      dispatch(setSelectedSeats([1, 2, 3]));
     }
-  }, [mode, setSelectedSeats]);
+  }, [mode, dispatch]);
 
   // Update fare data when coach or seats change
   useEffect(() => {
@@ -404,20 +406,20 @@ const NewSeatSelection = () => {
     const taxes = Math.round(baseFare * 0.05);
     const totalFare = baseFare + taxes;
     
-    setFareData({
+    dispatch(setFareData({
       baseFare,
       taxes,
       totalFare,
       farePerSeat
-    });
-  }, [selectedSeats.length, farePerSeat, setFareData]);
+    }));
+  }, [selectedSeats.length, farePerSeat, dispatch]);
 
   const handleSeatSelect = (seat) => {
-    setSelectedSeats((prev) =>
-      prev.includes(seat)
-        ? prev.filter((s) => s !== seat)
-        : [...prev, seat]
-    );
+    dispatch(setSelectedSeats(
+      selectedSeats.includes(seat)
+        ? selectedSeats.filter((s) => s !== seat)
+        : [...selectedSeats, seat]
+    ));
   };
 
   const handleProceed = () => {

@@ -1,7 +1,11 @@
+/**
+ * HeroText Component
+ * Responsibility: Display main heading and description text for the home page
+ */
 export default function HeroText() {
   return (
     <div className="w-full">
-      {/* Heading */}
+      {/* Main Heading */}
       <h1
         className="text-5xl font-bold text-gray-900 leading-tight"
         style={{ fontFamily: "Poppins, sans-serif" }}
@@ -10,7 +14,7 @@ export default function HeroText() {
         <span className="text-violet-600">With Confidence</span>
       </h1>
 
-      {/* Description */}
+      {/* Description Text */}
       <p
         className="mt-6 text-lg text-gray-600 leading-relaxed w-[85%]"
         style={{ fontFamily: "Poppins, sans-serif" }}
