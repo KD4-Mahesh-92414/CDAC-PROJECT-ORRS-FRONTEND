@@ -27,7 +27,6 @@ public class CoachType extends BaseEntity {
     @Column(nullable = false)
     private Integer totalSeats;
 
-    // MOVED HERE: Since the layout image is the same for all coaches of this type
     @Column(name = "coach_image_url")
     private String coachImageUrl; 
 
