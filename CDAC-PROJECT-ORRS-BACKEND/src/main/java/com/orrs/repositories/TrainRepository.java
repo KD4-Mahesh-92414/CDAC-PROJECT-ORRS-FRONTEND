@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.orrs.dto.response.TrainAdminViewDTO;
 import com.orrs.entities.Train;
+import com.orrs.enums.TrainStatus;
 
 public interface TrainRepository extends JpaRepository<Train, Long> {
 
@@ -29,5 +31,13 @@ public interface TrainRepository extends JpaRepository<Train, Long> {
         
     """)
     List<TrainAdminViewDTO> fetchAllTrains();
+
+    // Admin Dashboard Stats
+    @Query("SELECT COUNT(t) FROM Train t WHERE t.trainStatus = :status")
+    Long countByTrainStatus(@Param("status") TrainStatus status);
+
+    // Get all active trains for scheduling
+    @Query("SELECT t FROM Train t WHERE t.trainStatus = 'ACTIVE'")
+    List<Train> findAllActiveTrains();
 }
 

@@ -31,7 +31,7 @@ import lombok.ToString;
 @AttributeOverride(name="id", column = @Column(name="booking_id"))
 @Getter
 @Setter
-@ToString(exclude = "tickets") // Prevent circular reference in logs
+@ToString(exclude = {"tickets", "payments"}) // Prevent circular reference in logs
 @NoArgsConstructor
 @AllArgsConstructor
 public class Booking extends BaseEntity {
@@ -84,9 +84,19 @@ public class Booking extends BaseEntity {
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Ticket> tickets = new ArrayList<>();
 
+    // One Booking can have Many Payments (for refunds, partial payments, etc.)
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Payment> payments = new ArrayList<>();
+
     // Helper method to add tickets easily
     public void addTicket(Ticket ticket) {
         tickets.add(ticket);
         ticket.setBooking(this);
+    }
+
+    // Helper method to add payments easily
+    public void addPayment(Payment payment) {
+        payments.add(payment);
+        payment.setBooking(this);
     }
 }

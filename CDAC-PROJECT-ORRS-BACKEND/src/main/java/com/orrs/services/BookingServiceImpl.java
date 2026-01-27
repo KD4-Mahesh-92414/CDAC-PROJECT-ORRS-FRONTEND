@@ -18,6 +18,7 @@ import com.orrs.dto.response.BookingRespDTO;
 import com.orrs.dto.response.SeatReservationRespDTO;
 import com.orrs.entities.Booking;
 import com.orrs.entities.CoachType;
+import com.orrs.entities.Payment;
 import com.orrs.entities.SeatLayout;
 import com.orrs.entities.SeatReservation;
 import com.orrs.entities.Station;
@@ -243,6 +244,20 @@ public class BookingServiceImpl implements BookingService {
         // Save tickets
         bookingRepository.save(booking);
 
+        // 6.1. Create Payment Record (Simulating successful payment)
+        Payment payment = new Payment();
+        payment.setUser(firstReservation.getUser());
+        payment.setBooking(booking);
+        payment.setTransactionId(generateTransactionId());
+        payment.setAmount(totalFare);
+        payment.setPaymentMethod(com.orrs.enums.PaymentMethod.UPI); // Default for now
+        payment.setStatus(com.orrs.enums.PaymentStatus.SUCCESS);
+        payment.setPaymentDate(LocalDateTime.now());
+        payment.setGatewayResponse("Payment successful");
+        
+        booking.addPayment(payment);
+        bookingRepository.save(booking); // Save again to persist payment
+
         // 7. Delete Reservations (They are now converted to Booking)
         seatReservationRepository.deleteAll(reservations);
 
@@ -278,7 +293,15 @@ public class BookingServiceImpl implements BookingService {
     }
     
     private String generatePNR() {
-        return "PNR" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        // Generate 10-digit PNR: Format YYYYMMDDXX where XX is random 2-digit number
+        LocalDateTime now = LocalDateTime.now();
+        String datePart = now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+        int randomPart = (int) (Math.random() * 90) + 10; // Random 2-digit number (10-99)
+        return datePart + String.format("%02d", randomPart);
+    }
+
+    private String generateTransactionId() {
+        return "TXN" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
     }
 
     private BigDecimal calculateFarePerSeat(Long trainId, Long coachTypeId, Long sourceStationId, Long destinationStationId) {
