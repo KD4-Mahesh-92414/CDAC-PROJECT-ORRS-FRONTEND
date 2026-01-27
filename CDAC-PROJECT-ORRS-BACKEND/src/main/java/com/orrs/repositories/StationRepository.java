@@ -25,4 +25,11 @@ public interface StationRepository extends JpaRepository<Station, Long> {
 
     """)
     List<StationAdminViewDTO> fetchAllStations();
+
+    // Admin Dashboard Stats
+    @Query("SELECT COUNT(s) FROM Station s WHERE s.status = 'ACTIVE'")
+    Long countActiveStations();
+
+    @Query("SELECT COUNT(s) FROM Station s")
+    Long countTotalStations();
 }

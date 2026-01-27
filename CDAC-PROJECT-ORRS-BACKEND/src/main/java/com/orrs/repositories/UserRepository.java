@@ -20,4 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long>{
 	
 	@Query("select new com.orrs.dto.response.UserAdminViewDTO(u.id, u.fullName, u.email, u.mobile, u.role, u.status) from User u where u.status != :status")
 	List<UserAdminViewDTO> fetchAllUsers(@Param("status") AccountStatus status );
+
+	// Admin Dashboard Stats
+	@Query("SELECT COUNT(u) FROM User u WHERE u.status = 'ACTIVE'")
+	Long countActiveUsers();
 }
