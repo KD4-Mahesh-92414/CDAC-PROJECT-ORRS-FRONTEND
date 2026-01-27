@@ -11,6 +11,11 @@ import {
   CreateAnnouncement
 } from './components';
 
+import CoachTypeListPage from './pages/CoachTypeListPage';
+import AddCoachTypePage from './pages/AddCoachTypePage';
+import EditCoachTypePage from './pages/EditCoachTypePage';
+import ViewCoachTypePage from './pages/ViewCoachTypePage';
+
 // Example routes array for React Router
 export const adminRoutes = [
   {
@@ -41,6 +46,22 @@ export const adminRoutes = [
   {
     path: '/admin/announcements',
     element: <CreateAnnouncement />
+  },
+  {
+    path: '/admin/coach-types',
+    element: <CoachTypeListPage />
+  },
+  {
+    path: '/admin/coach-types/add',
+    element: <AddCoachTypePage />
+  },
+  {
+    path: '/admin/coach-types/edit/:id',
+    element: <EditCoachTypePage />
+  },
+  {
+    path: '/admin/coach-types/view/:id',
+    element: <ViewCoachTypePage />
   }
 ];
 

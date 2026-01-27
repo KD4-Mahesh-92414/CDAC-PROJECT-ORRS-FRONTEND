@@ -6,6 +6,10 @@ import { Provider, useDispatch } from "react-redux";
 import store from "./store";
 import { initializeAuth } from "./store/slices/authSlice";
 
+// Admin Context Providers
+import { TrainProvider } from "./admin/context/TrainContext";
+import { StationProvider } from "./admin/context/StationContext";
+
 // Protected Route Guard
 import ProtectedRoute from "./components/guards/ProtectedRoute";
 
@@ -26,6 +30,14 @@ const UserManagement = lazy(() => import("./admin/pages/UserManagement"));
 const FareStructure = lazy(() => import("./admin/pages/FareStructure"));
 const RefundTransaction = lazy(() => import("./admin/pages/RefundTransaction"));
 const CreateAnnouncement = lazy(() => import("./admin/pages/CreateAnnouncement"));
+const CoachTypeListPage = lazy(() => import("./admin/pages/CoachTypeListPage"));
+const AddCoachTypePage = lazy(() => import("./admin/pages/AddCoachTypePage"));
+const EditCoachTypePage = lazy(() => import("./admin/pages/EditCoachTypePage"));
+const ViewCoachTypePage = lazy(() => import("./admin/pages/ViewCoachTypePage"));
+const TrainRouteListPage = lazy(() => import("./admin/pages/TrainRouteListPage"));
+const AddTrainRoutePage = lazy(() => import("./admin/pages/AddTrainRoutePage"));
+const EditTrainRoutePage = lazy(() => import("./admin/pages/EditTrainRoutePage"));
+const ViewTrainRoutePage = lazy(() => import("./admin/pages/ViewTrainRoutePage"));
 
 // Booking Flow Pages
 const TrainSearchResults = lazy(() => import("./pages/booking/TrainSearchResults"));
@@ -220,63 +232,22 @@ function AppContent() {
             } 
           />
 
-          {/* Protected Admin Routes */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/stations" 
-            element={
-              <ProtectedRoute>
-                <StationManagement />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/trains" 
-            element={
-              <ProtectedRoute>
-                <TrainManagement />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/users" 
-            element={
-              <ProtectedRoute>
-                <UserManagement />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/fares" 
-            element={
-              <ProtectedRoute>
-                <FareStructure />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/refunds" 
-            element={
-              <ProtectedRoute>
-                <RefundTransaction />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/announcements" 
-            element={
-              <ProtectedRoute>
-                <CreateAnnouncement />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Admin Routes - No Authentication Required */}
+          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin/stations" element={<StationManagement />} />
+          <Route path="/admin/trains" element={<TrainManagement />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/fares" element={<FareStructure />} />
+          <Route path="/admin/refunds" element={<RefundTransaction />} />
+          <Route path="/admin/announcements" element={<CreateAnnouncement />} />
+          <Route path="/admin/coach-types" element={<CoachTypeListPage />} />
+          <Route path="/admin/coach-types/add" element={<AddCoachTypePage />} />
+          <Route path="/admin/coach-types/edit/:id" element={<EditCoachTypePage />} />
+          <Route path="/admin/coach-types/view/:id" element={<ViewCoachTypePage />} />
+          <Route path="/admin/train-routes" element={<TrainRouteListPage />} />
+          <Route path="/admin/train-routes/add" element={<AddTrainRoutePage />} />
+          <Route path="/admin/train-routes/edit/:id" element={<EditTrainRoutePage />} />
+          <Route path="/admin/train-routes/view/:id" element={<ViewTrainRoutePage />} />
 
           {/* Other Protected Routes */}
           <Route 
@@ -336,9 +307,13 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <TrainProvider>
+        <StationProvider>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </StationProvider>
+      </TrainProvider>
     </Provider>
   );
 }

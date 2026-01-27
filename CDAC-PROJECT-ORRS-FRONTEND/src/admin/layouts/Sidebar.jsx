@@ -9,13 +9,17 @@ import {
   ArrowPathIcon,
   SpeakerWaveIcon,
   XMarkIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  TruckIcon,
+  MapIcon
 } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
   { name: 'Train Management', href: '/admin/trains', icon: RocketLaunchIcon },
   { name: 'Station Management', href: '/admin/stations', icon: BuildingOfficeIcon },
+  { name: 'Coach Type Management', href: '/admin/coach-types', icon: TruckIcon },
+  { name: 'Train Route Management', href: '/admin/train-routes', icon: MapIcon },
   { name: 'User Management', href: '/admin/users', icon: UsersIcon },
   { name: 'Fair Structure', href: '/admin/fares', icon: CurrencyDollarIcon },
   { name: 'Refund Transaction', href: '/admin/refunds', icon: ArrowPathIcon },

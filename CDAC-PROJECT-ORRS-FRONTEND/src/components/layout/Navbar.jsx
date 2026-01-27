@@ -154,6 +154,30 @@ export default function Navbar() {
               Home
             </Link>
 
+            <Link
+              to="/admin"
+              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
+                location.pathname.startsWith("/admin")
+                  ? "text-violet-600 font-semibold bg-violet-50"
+                  : "text-gray-700 hover:text-violet-600 hover:bg-violet-50"
+              }`}
+            >
+              Admin
+            </Link>
+
+            {isAuthenticated && (
+              <Link
+                to="/admin"
+                className={`px-3 py-2 rounded-lg transition-all duration-200 ${
+                  location.pathname.startsWith("/admin")
+                    ? "text-violet-600 font-semibold bg-violet-50"
+                    : "text-gray-700 hover:text-violet-600 hover:bg-violet-50"
+                }`}
+              >
+                Admin
+              </Link>
+            )}
+
             <NavDropdown
               label="Trains"
               items={trainItems}
