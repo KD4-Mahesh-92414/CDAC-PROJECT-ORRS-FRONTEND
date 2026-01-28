@@ -4,10 +4,7 @@ export default function FormModal({
   open, 
   onClose, 
   title, 
-  children, 
-  onSubmit,
-  submitText = "Save",
-  loading = false 
+  children
 }) {
   if (!open) return null;
 
@@ -30,28 +27,10 @@ export default function FormModal({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={onSubmit} className="p-6">
+        {/* Content */}
+        <div className="p-6">
           {children}
-          
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-transparent rounded-md hover:bg-violet-700 disabled:opacity-50"
-            >
-              {loading ? 'Saving...' : submitText}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

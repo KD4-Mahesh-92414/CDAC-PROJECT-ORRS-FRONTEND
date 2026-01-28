@@ -7,8 +7,29 @@ export default function DataTable({
   onDelete, 
   showActions = true,
   hideEdit = false,
-  customActions = null
+  customActions = null,
+  loading = false
 }) {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8">
+        <div className="flex justify-center items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+          <span className="ml-2 text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8">
+        <div className="text-center text-gray-500">
+          No data available
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="overflow-x-auto">
@@ -50,7 +71,9 @@ export default function DataTable({
                           <PencilIcon className="w-4 h-4" />
                         </button>
                       )}
-                      {customActions && customActions(row).map((action, actionIndex) => (
+                      {customActions && customActions(row)
+                        .filter(action => action.show !== false)
+                        .map((action, actionIndex) => (
                         <button
                           key={actionIndex}
                           onClick={action.onClick}

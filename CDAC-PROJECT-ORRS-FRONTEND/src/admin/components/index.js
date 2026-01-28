@@ -9,3 +9,4 @@ export { default as AdminSelect } from './AdminSelect';
 export { default as CoachTypeForm } from './CoachTypeForm';
 export { default as TrainRouteForm } from './TrainRouteForm';
 export { default as SeatLayoutForm } from './SeatLayoutForm';
+export { default as UserForm } from './UserForm';

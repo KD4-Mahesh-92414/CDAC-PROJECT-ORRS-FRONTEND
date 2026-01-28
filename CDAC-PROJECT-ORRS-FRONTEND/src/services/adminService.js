@@ -21,7 +21,11 @@ export const trainService = {
 // User Management APIs
 export const userService = {
   getAllUsers: () => api.get('/admin/users'),
+  getUserById: (userId) => api.get(`/admin/users/${userId}`),
+  createUser: (userData) => api.post('/admin/users', userData),
+  updateUser: (userId, userData) => api.put(`/admin/users/${userId}`, userData),
   updateUserStatus: (userId, statusData) => api.patch(`/admin/users/${userId}/status`, statusData),
+  suspendUser: (userId) => api.patch(`/admin/users/${userId}/suspend`),
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`)
 };
 

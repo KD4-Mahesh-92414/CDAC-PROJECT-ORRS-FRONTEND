@@ -24,8 +24,6 @@ const navigation = [
   { name: 'Seat Layout Management', href: '/admin/seat-layouts', icon: ViewColumnsIcon },
   { name: 'Train Route Management', href: '/admin/train-routes', icon: MapIcon },
   { name: 'Fare Structure', href: '/admin/fares', icon: CurrencyDollarIcon },
-  { name: 'Refund Transaction', href: '/admin/refunds', icon: ArrowPathIcon },
-  { name: 'Create Announcement', href: '/admin/announcements', icon: SpeakerWaveIcon },
 ];
 
 export default function Sidebar({ open, setOpen }) {

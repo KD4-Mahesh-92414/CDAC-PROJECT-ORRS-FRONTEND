@@ -6,6 +6,7 @@ export default function AdminSelect({
   options,
   error,
   required = false,
+  placeholder = "Select an option",
   ...props
 }) {
   return (
@@ -16,13 +17,14 @@ export default function AdminSelect({
       <select
         id={name}
         name={name}
-        value={value}
+        value={value || ''}
         onChange={onChange}
         className={`w-full px-4 py-3 border-2 rounded-xl focus:border-violet-600 focus:outline-none transition-colors ${
           error ? 'border-red-400' : 'border-violet-200'
         }`}
         {...props}
       >
+        <option value="">{placeholder}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

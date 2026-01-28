@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.orrs.entities.CoachType;
 import com.orrs.entities.TrainFare;
 
 public interface TrainFareRepository extends JpaRepository<TrainFare, Long> {
@@ -18,6 +19,8 @@ public interface TrainFareRepository extends JpaRepository<TrainFare, Long> {
 	List<TrainFare> findAllByIsDeletedFalse();
 	
 	List<TrainFare> findAllByTrainIdAndIsDeletedFalse(Long trainId);
+	
+	boolean existsByCoachType(CoachType coachType);
 	
 	@Query("SELECT new com.orrs.dto.response.TrainFareAdminViewDTO(" +
 		   "tf.id, tf.train.id, tf.train.trainNumber, tf.train.trainName, " +

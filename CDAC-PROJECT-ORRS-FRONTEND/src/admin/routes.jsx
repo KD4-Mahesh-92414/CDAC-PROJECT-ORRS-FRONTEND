@@ -40,14 +40,6 @@ export const adminRoutes = [
     element: <FareStructure />
   },
   {
-    path: '/admin/refunds',
-    element: <RefundTransaction />
-  },
-  {
-    path: '/admin/announcements',
-    element: <CreateAnnouncement />
-  },
-  {
     path: '/admin/coach-types',
     element: <CoachTypeListPage />
   },

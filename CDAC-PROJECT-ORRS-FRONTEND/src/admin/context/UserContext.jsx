@@ -16,7 +16,6 @@ export const UserProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch users from backend on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -36,12 +35,46 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const createUser = async (userData) => {
+    try {
+      setLoading(true);
+      const response = await adminService.users.createUser(userData);
+      if (response.data && response.data.status === 'SUCCESS') {
+        await fetchUsers();
+        return true;
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error(error.response?.data?.message || 'Failed to create user');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUser = async (userId, userData) => {
+    try {
+      setLoading(true);
+      const response = await adminService.users.updateUser(userId, userData);
+      if (response.data && response.data.status === 'SUCCESS') {
+        await fetchUsers();
+        return true;
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast.error(error.response?.data?.message || 'Failed to update user');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateUserStatus = async (userId, statusData) => {
     try {
       setLoading(true);
       const response = await adminService.users.updateUserStatus(userId, statusData);
       if (response.data && response.data.status === 'SUCCESS') {
-        await fetchUsers(); // Refresh the list
+        await fetchUsers();
         return true;
       }
     } catch (error) {
@@ -53,12 +86,29 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const suspendUser = async (userId) => {
+    try {
+      setLoading(true);
+      const response = await adminService.users.suspendUser(userId);
+      if (response.data && response.data.status === 'SUCCESS') {
+        await fetchUsers();
+        return true;
+      }
+    } catch (error) {
+      console.error('Error suspending user:', error);
+      toast.error(error.response?.data?.message || 'Failed to suspend user');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deleteUser = async (userId) => {
     try {
       setLoading(true);
       const response = await adminService.users.deleteUser(userId);
       if (response.data && response.data.status === 'SUCCESS') {
-        await fetchUsers(); // Refresh the list
+        await fetchUsers();
         return true;
       }
     } catch (error) {
@@ -71,13 +121,16 @@ export const UserProvider = ({ children }) => {
   };
 
   const getUserById = (userId) => {
-    return users.find(u => u.id === userId);
+    return users.find(u => u.userId === userId);
   };
 
   const value = {
     users,
     loading,
+    createUser,
+    updateUser,
     updateUserStatus,
+    suspendUser,
     deleteUser,
     getUserById,
     fetchUsers
